@@ -55,7 +55,7 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	@Resource
 	private DataTransJob dataTransJob;
 	/**
-	 * job配置
+	 * job运行事件配置（其实暂时不需要）
 	 */
 	@Resource
 	private JobEventConfiguration jobEventConfiguration;

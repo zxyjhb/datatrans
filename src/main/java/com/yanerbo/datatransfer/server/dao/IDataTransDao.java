@@ -17,7 +17,9 @@ public interface IDataTransDao {
 
 	List<Map<String, Object>> select(DataType type, String sql);
 
-	void insert(DataType type, String sql, List<Map<String, Object>> datas);
+	void insertBatch(DataType type, String sql, List<Map<String, Object>> datas);
+
+	void insert(DataType type, String sql, Map<String, Object> data);
 	
 	
 

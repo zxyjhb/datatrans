@@ -1,11 +1,9 @@
 package com.yanerbo.datatransfer.server.manager.impl;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +32,10 @@ public class DataTransManager implements IDataTransManager{
 	 * 日志
 	 */
 	private final static Logger log = LoggerFactory.getLogger(DataTransManager.class);
-	
-	private final Map<String, AtomicInteger> currentPages = new HashMap<String, AtomicInteger>();
+	/**
+	 * zk当前页
+	 */
+	private static final String CURRENTPAGE = "/%s/%s/currentPage";
 	/**
 	 * 线程池
 	 */
@@ -63,8 +63,18 @@ public class DataTransManager implements IDataTransManager{
 	 * @param config
 	 */
 	private void validate(DataTransEntity config) {
-		//TODO
-		
+		//配置信息为空
+		if(config == null){
+			throw new DataTransRuntimeException("配置信息为空");
+		}
+		//配置信息名称为空
+		if(config.getName()==null || config.getName().isEmpty()){
+			throw new DataTransRuntimeException("配置信息名称为空");
+		}
+		//配置信息名称为空
+		if(config.getMode() == null || !config.getMode().equals("all")){
+			throw new DataTransRuntimeException("配置信息传输模式不为全量");
+		}
 	}
 	
 	/**
@@ -90,7 +100,8 @@ public class DataTransManager implements IDataTransManager{
 			
 			@Override
 			public void run() {
-				String key = "/" + config.getName() + "/" + shardingItem + "/page";
+				
+				String key = String.format(CURRENTPAGE, jobName, shardingItem);;
 				//获取分片当前页
 				int currentPage = distributedHandle.increment(key);
 				//获取原表总数
@@ -99,13 +110,39 @@ public class DataTransManager implements IDataTransManager{
 				//获取原表数据
 				long startTime = System.currentTimeMillis();
 				List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(config, shardingItem, shardingTotal, currentPage));
-				dataTransDao.insert(DataType.target, SqlUtil.builderInsert(config.getTargetTable(), config.getTargetColumns(), config.getTargetSql()), datas);
+				log.info("job name: " + config.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + " query " + datas.size() + " 执行耗时：" + (System.currentTimeMillis() - startTime));
+				startTime = System.currentTimeMillis();
+				dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(config), datas);
+				log.info("job name: " + config.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + " insert total " + datas.size() + " 执行耗时：" + (System.currentTimeMillis() - startTime));
+			}
+		
+		});
+		return true;
+	}
+	
+	private boolean allTrans(DataTransEntity config, int shardingItem, int shardingTotal){
+		//开始进行数据迁移		
+		executor.execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				
+				String key = String.format(CURRENTPAGE, config.getName(), shardingItem);;
+				//获取分片当前页
+				int currentPage = distributedHandle.increment(key);
+//				int count = dataTransDao.count(DataType.source, SqlUtil.getAllCount(config.getSourceTable(), config.getSourceKey(), shardingItem, shardingTotal));
+//				log.info("dataTrans " + config.getName() + " total count:" + count + ", pageCount: " + config.getPageCount() +",currentPage: " + currentPage);
+				//获取原表数据
+				long startTime = System.currentTimeMillis();
+				List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(config, shardingItem, shardingTotal, currentPage));
+				dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(config), datas);
 				log.info("job name: " + config.getName() + ", 当前分片：" + shardingItem + ",总分片" + shardingTotal + "insert total " + datas.size() + " 执行耗时：" + (System.currentTimeMillis() - startTime));
 			}
 		
 		});
 		return true;
 	}
+	
 	/**
 	 * 获取分片配置信息
 	 * @param jobName

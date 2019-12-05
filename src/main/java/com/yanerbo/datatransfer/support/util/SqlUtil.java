@@ -96,11 +96,11 @@ public class SqlUtil {
 		return sqlBuilder.toString();
 	}
 	
-	public static String builderInsert(String table, String columns, String insertSql) {
-		if(isNotEmpty(table) && isNotEmpty(columns)){
-			return builderInsert(table, columns);
+	public static String builderInsert(DataTransEntity entity) {
+		if(isNotEmpty(entity.getTargetTable()) && isNotEmpty(entity.getTargetColumns())){
+			return builderInsert(entity.getTargetTable(), entity.getTargetColumns());
 		}
-		return insertSql;
+		return entity.getTargetSql();
 	}
 	
 	public static String builderInsert(String table, String columns){
