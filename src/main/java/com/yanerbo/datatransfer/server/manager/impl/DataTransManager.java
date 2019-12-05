@@ -36,7 +36,9 @@ public class DataTransManager implements IDataTransManager{
 	private final static Logger log = LoggerFactory.getLogger(DataTransManager.class);
 	
 	private final Map<String, AtomicInteger> currentPages = new HashMap<String, AtomicInteger>();
-	
+	/**
+	 * 线程池
+	 */
 	private final static ExecutorService executor = Executors.newFixedThreadPool(50);
 	/**
 	 * 分布式处理
@@ -62,6 +64,7 @@ public class DataTransManager implements IDataTransManager{
 	 */
 	private void validate(DataTransEntity config) {
 		//TODO
+		
 	}
 	
 	/**
@@ -87,21 +90,20 @@ public class DataTransManager implements IDataTransManager{
 			
 			@Override
 			public void run() {
-				long startTime = System.currentTimeMillis();
 				String key = "/" + config.getName() + "/" + shardingItem + "/page";
 				//获取分片当前页
 				int currentPage = distributedHandle.increment(key);
 				//获取原表总数
-				int count = dataTransDao.count(DataType.source, SqlUtil.getAllCount(config.getSourceTable(), config.getSourceKey(), shardingItem, shardingTotal));
-				log.info("dataTrans " + config.getName() + " total count:" + count + ", pageCount: " + config.getPageCount() +",currentPage: " + currentPage);
+//				int count = dataTransDao.count(DataType.source, SqlUtil.getAllCount(config.getSourceTable(), config.getSourceKey(), shardingItem, shardingTotal));
+//				log.info("dataTrans " + config.getName() + " total count:" + count + ", pageCount: " + config.getPageCount() +",currentPage: " + currentPage);
 				//获取原表数据
+				long startTime = System.currentTimeMillis();
 				List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(config, shardingItem, shardingTotal, currentPage));
 				dataTransDao.insert(DataType.target, SqlUtil.builderInsert(config.getTargetTable(), config.getTargetColumns(), config.getTargetSql()), datas);
 				log.info("job name: " + config.getName() + ", 当前分片：" + shardingItem + ",总分片" + shardingTotal + "insert total " + datas.size() + " 执行耗时：" + (System.currentTimeMillis() - startTime));
 			}
 		
 		});
-		
 		return true;
 	}
 	/**
