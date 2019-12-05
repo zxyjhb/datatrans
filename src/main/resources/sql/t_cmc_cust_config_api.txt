@@ -1,0 +1,32 @@
+drop table `cmcdb`.`t_cmc_cust_config_api`;
+create table `cmcdb`.`t_cmc_cust_config_api` (
+  `id` int(11) not null comment '主键id',
+  `createtime` datetime default now() comment '创建时间',
+  `createuserid` varchar(50) default 1 comment '创建人id',
+  `lastupdatetime` datetime default null comment '最后修改时间',
+  `lastupdateuserid` varchar(50) default null comment '最后修改人id',
+  `apiname` varchar(200) default null comment '接口名称',
+  `apicode` varchar(200) default null comment '接口编码',
+  `systarget` varchar(200) default null comment '所属系统',
+  `paramin` varchar(500) default null comment '输入参数（{CUSTACCOUNT=["custnumber"]}）',
+  `paramout` varchar(500) default null comment '输出参数（{CUSTACCOUNT=["custnumber"]}）',
+  `descr` varchar(200) default null comment '接口描述',
+  `apiuser` varchar(100) default null comment '接口对接人',
+  `apilevel` varchar(100) default null comment 'API级别（0：核心链路）',
+  `ifparallel` char(1) default null comment '是否并行（Y是N否，默认是）',
+  `field1` varchar(100) default null comment '扩展字段1',
+  `field2` varchar(100) default null comment '扩展字段2',
+  `field3` varchar(100) default null comment '扩展字段3',
+  primary key (`id`),
+  unique key `idx_cmc_cust_config_api_id` (`id`) using btree,
+  index `idx_cmc_cust_config_api_apicode` (apicode)
+) engine=innodb default charset=utf8 row_format=compact /* bf=id, policy=alone_int, startid=1, auto_increment_column=id, assignidtype=dsb, assigncount=1000 */;
+
+
+insert into cmcdb.t_cmc_cust_config_api(createtime, createuserid, lastupdatetime, lastupdateuserid,apiname,apicode,systarget,paramin,paramout,descr,apiuser,apilevel)
+values(now(),1,now(),now(),'OWS系统查询客户账号信息','OWS_CUST_LABEL','OWS','{"custaccount":["custnumber"]}','{"custaccount":["custnumber","bank","bankaccount","relation"]}','OWS系统查询客户账号信息','274818','1');
+
+
+
+insert into cmcdb.t_cmc_cust_config_api(apiname,apicode,systarget,paramin,paramout,descr,apiuser,apilevel)
+values('OWS系统查询客户账号信息','OWS_CUST_LABEL','OWS','{"custaccount":["custnumber"]}','{"custaccount":["custnumber","bank","bankaccount","relation"]}','OWS系统查询客户账号信息','274818','1');

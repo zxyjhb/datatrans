@@ -1,0 +1,38 @@
+create table `cmcdb`.`t_cmc_cust_prefer_dept` (
+`id` int(11) not null comment '主键id',
+`createtime` datetime now() comment '创建时间',
+`createuserid` int(11) default 1 comment '创建人id',
+`lastupdatetime` datetime default null comment '最后修改时间',
+`lastmodifyuserid` int(11) default null comment '最后修改人id',
+`custnumber` varchar(200) default null comment '客户编码',
+`custname` varchar(500) default null comment '客户名称',
+`preferid` varchar(100) default null comment '折扣id',
+`prefercode` varchar(100) default null comment '折扣编码',
+`deptid` varchar(50) default null comment '绑定部门id',
+`deptcode` varchar(50) default null comment '部门编码',
+`standardcode` varchar(50) default null comment '部门标杆编码',
+`deptname` varchar(50) default null comment '部门名称',
+`bindbegintime` datetime default null comment '绑定时间',
+`bindendtime` datetime default null comment '失效时间',
+`isdept` char(1) default null comment '是否合同归属部门(0否，1是)',
+`state` char(1) default null comment '状态(0解绑，1绑定)',
+`provinceid` varchar(50) default null comment '所属省份id',
+`provincename` varchar(100) default null comment '省份名称',
+`provincecode` varchar(100) default null comment '省份编码',
+`cityid` varchar(50) default null comment '所属城市id',
+`cityname` varchar(100) default null comment '城市名称',
+`citycode` varchar(100) default null comment '城市编码',
+`areaid` varchar(50) default null comment '所属区域id',
+`areaname` varchar(100) default null comment '区县名称',
+`areacode` varchar(100) default null comment '区县编码',
+`field1` varchar(100) default null comment '扩展字段1',
+`field2` varchar(100) default null comment '扩展字段2',
+`field3` varchar(100) default null comment '扩展字段3',
+primary key (`id`),
+unique key `idx_cmc_cust_prefer_dept_id` (`id`) using btree,
+index `idx_cmc_cust_prefer_dept_custnumber` (custnumber)
+
+) engine=innodb default charset=utf8 row_format=compact /* bf=custnumber, policy=cmcdb_string, startid=1, auto_increment_column=id, assignidtype=dsb, assigncount=1000 */;
+
+
+insert into cmcdb.t_cmc_cust_prefer_dept(id,custnumber,custname) VALUES(2,'20191019','测试合同绑定部门2');
