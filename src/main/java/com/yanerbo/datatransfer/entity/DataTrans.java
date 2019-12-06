@@ -65,14 +65,6 @@ public class DataTrans {
 	 * 分片参数
 	 */
 	private String shardingItemParameters;
-	/**
-	 * 是否重新跑初始化
-	 */
-	private boolean initialize = true;
-	/**
-	 * 分片总行数
-	 */
-	private String shardingDataTotalCount;
 	
 	public String getName() {
 		return name;

@@ -79,7 +79,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 			}
 			return totalCount.get().postValue();
 		}catch(Exception e){
-			e.printStackTrace();
+			log.error("getTotalCount fail ",e);
 		}
 		return -1;
 	}
@@ -98,7 +98,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 		try {
 			return getAtomicInteger(key).increment().postValue();
 		}catch(Exception e) {
-			e.printStackTrace();
+			log.error("getCurrentPage fail ",e);
 		}
 		return -1;
 	}
