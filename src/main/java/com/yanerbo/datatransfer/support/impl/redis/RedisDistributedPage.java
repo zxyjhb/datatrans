@@ -1,5 +1,6 @@
 package com.yanerbo.datatransfer.support.impl.redis;
 
+import com.yanerbo.datatransfer.entity.Page;
 import com.yanerbo.datatransfer.support.impl.IDistributedPage;
 
 /**
@@ -19,6 +20,12 @@ public class RedisDistributedPage implements IDistributedPage{
 	public int getCurrentPage(String jobName, int shardingItem, int shardingTotal) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public Page getPage(String jobName, int shardingItem, int shardingTotal) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

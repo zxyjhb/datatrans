@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.entity.DataTrans;
 import com.yanerbo.datatransfer.entity.DataType;
+import com.yanerbo.datatransfer.entity.Page;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.server.dao.IDataTransDao;
 import com.yanerbo.datatransfer.server.manager.IDataTransManager;
@@ -92,22 +93,21 @@ public class DataTransManager implements IDataTransManager{
 			
 			@Override
 			public void run() {
-				//获取分片总数
-				int totalCount = distributedPage.getTotalCount(jobName, shardingItem, shardingTotal);
-				//获取分片当前页
-				int currentPage = distributedPage.getCurrentPage(jobName, shardingItem, shardingTotal);
+				
+				long startTime = System.currentTimeMillis();
+				Page page = distributedPage.getPage(jobName, shardingItem, shardingTotal);
+				log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",分页耗时：" + (System.currentTimeMillis() - startTime) +  page);
 				//当前分片已经跑完，就停止了
-				if(currentPage*(dataTrans.getPageCount()+1) > totalCount){
+				if(page.getStartPostPage() + page.getCurrentPage()*(dataTrans.getPageCount()+1) > page.getEndPostPage()){
 					log.info("当前分片已经跑完，运行完毕！");
 					return;
 				}
 				//获取原表数据
-				long startTime = System.currentTimeMillis();
-				List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, shardingItem, shardingTotal, currentPage));
-				log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",totalCount:" + totalCount + ",currentPage:" + currentPage + ", query " + datas.size() + " 执行耗时：" + (System.currentTimeMillis() - startTime));
+				List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, shardingItem, shardingTotal, page.getCurrentPage(), page.getStartPostPage()));
+				log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",查询耗时：" + (System.currentTimeMillis() - startTime) +  page);
 				startTime = System.currentTimeMillis();
 				dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);
-				log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",totalCount:" + totalCount + ",currentPage:" + currentPage + " insert total " + datas.size() + " 执行耗时：" + (System.currentTimeMillis() - startTime));
+				log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",保存耗时：" + (System.currentTimeMillis() - startTime) +  page);
 			}
 		
 		});

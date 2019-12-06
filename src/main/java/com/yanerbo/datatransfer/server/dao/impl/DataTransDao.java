@@ -1,14 +1,17 @@
 package com.yanerbo.datatransfer.server.dao.impl;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import com.yanerbo.datatransfer.entity.DataType;
+import com.yanerbo.datatransfer.entity.Page;
 import com.yanerbo.datatransfer.server.dao.IDataTransDao;
 import com.yanerbo.datatransfer.support.util.DataSourceManager;
 import com.yanerbo.datatransfer.support.util.SqlUtil;
@@ -25,6 +28,31 @@ public class DataTransDao implements IDataTransDao{
 	
 	@Autowired
 	private DataSourceManager dataSourceManager;
+	
+	
+	
+	/**
+	 * 获取条数
+	 * @param sql
+	 * @param type
+	 * @return
+	 */
+	@Override
+	public Page pageInfo(DataType type, String sql) {
+		
+		return dataSourceManager.getJdbcTemplate(type).queryForObject(sql, new RowMapper<Page>(){
+			@Override
+			public Page mapRow(ResultSet rs, int rowNum) throws SQLException {
+				
+				Page page = new Page();  
+				page.setTotalCount(rs.getInt("totalCount"));
+				page.setStartPostPage(rs.getInt("startPostPage"));
+				page.setEndPostPage(rs.getInt("endPostPage"));
+				return page;
+			}
+		});
+//		return (Page) dataSourceManager.getJdbcTemplate(type).queryForObject(sql, Page.class);
+	}
 	
 	/**
 	 * 获取条数

@@ -1,5 +1,7 @@
 package com.yanerbo.datatransfer.support.impl;
 
+import com.yanerbo.datatransfer.entity.Page;
+
 public interface IDistributedPage {
 	
 	/**
@@ -17,5 +19,8 @@ public interface IDistributedPage {
 	 * @return
 	 */
 	public int getCurrentPage(String jobName, int shardingItem, int shardingTotal);
+	
+
+	public Page getPage(String jobName, int shardingItem, int shardingTotal);
 
 }
