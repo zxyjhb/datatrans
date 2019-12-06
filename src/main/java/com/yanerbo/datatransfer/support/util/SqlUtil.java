@@ -1,7 +1,7 @@
 package com.yanerbo.datatransfer.support.util;
 
 import java.util.Arrays;
-import com.yanerbo.datatransfer.entity.DataTransEntity;
+import com.yanerbo.datatransfer.entity.DataTrans;
 
 /**
  * 
@@ -38,7 +38,7 @@ public class SqlUtil {
 	 * @param shardingTotal
 	 * @return
 	 */
-	public static String getMaxKey(DataTransEntity entity,int shardingItem, int shardingTotal, int currentPage) {
+	public static String getMaxKey(DataTrans entity,int shardingItem, int shardingTotal, int currentPage) {
 		
 		/**
 		 * 如果表名和字段名称为null，那么就从sql进行构建
@@ -77,7 +77,7 @@ public class SqlUtil {
 		return true;
 	}
 	
-	public static String builderSelect(DataTransEntity entity,int shardingItem, int shardingTotal, int currentPage) {
+	public static String builderSelect(DataTrans entity,int shardingItem, int shardingTotal, int currentPage) {
 		/**
 		 * 如果表名和字段名称为null，那么就从sql进行构建
 		 */
@@ -96,7 +96,7 @@ public class SqlUtil {
 		return sqlBuilder.toString();
 	}
 	
-	public static String builderInsert(DataTransEntity entity) {
+	public static String builderInsert(DataTrans entity) {
 		if(isNotEmpty(entity.getTargetTable()) && isNotEmpty(entity.getTargetColumns())){
 			return builderInsert(entity.getTargetTable(), entity.getTargetColumns());
 		}

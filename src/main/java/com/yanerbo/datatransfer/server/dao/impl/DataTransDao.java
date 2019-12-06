@@ -96,7 +96,6 @@ public class DataTransDao implements IDataTransDao{
 		dataSourceManager.getJdbcTemplate(type).update(sql, new PreparedStatementSetter() {
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
-				ps.getConnection().setAutoCommit(true);
 				for(int j = 0; j<fields.length;j++) {
 					 ps.setObject(j+1, data.get(fields[j]));
 				 }

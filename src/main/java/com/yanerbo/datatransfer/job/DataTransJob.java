@@ -16,6 +16,8 @@ public class DataTransJob implements SimpleJob{
 	
 	@Override
 	public void execute(ShardingContext shardingContext) {
+		
+		
 		DataTransManager dataTransManager = ElasticJobSpringContextUtil.getBean(DataTransManager.class, "dataTransManager");
 		dataTransManager.trans(shardingContext.getJobName(), shardingContext.getShardingItem(), shardingContext.getShardingTotalCount());
 	}

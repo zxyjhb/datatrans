@@ -16,7 +16,7 @@ import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
 import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.config.DataTransConfig;
-import com.yanerbo.datatransfer.entity.DataTransEntity;
+import com.yanerbo.datatransfer.entity.DataTrans;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.job.DataTransJob;
 
@@ -85,7 +85,7 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		
-		for (final DataTransEntity entity : dataTransConfig.getSchedules()) {
+		for (final DataTrans entity : dataTransConfig.getSchedules()) {
 			try {
 				if("none".equals(entity.getMode())) {
 					log.info("初始化定时任务 ：{ "+ entity.toString()+" } 模式为none，不用启动");
@@ -109,7 +109,7 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 * @param elasticJobConfigBean
 	 * @return
 	 */
-	private SpringJobScheduler jobScheduler(ElasticJob elasticJob, DataTransEntity entity) {
+	private SpringJobScheduler jobScheduler(ElasticJob elasticJob, DataTrans entity) {
 		LiteJobConfiguration build = LiteJobConfiguration.newBuilder(jobConfiguration(elasticJob, entity))
 				.overwrite(true).build();
 		SpringJobScheduler springJobScheduler = new SpringJobScheduler(elasticJob, zookeeperRegistryCenter, build,
@@ -124,7 +124,7 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 * @param elasticJobConfigBean
 	 * @return
 	 */
-	private JobTypeConfiguration jobConfiguration(final ElasticJob elasticJob, DataTransEntity entity) {
+	private JobTypeConfiguration jobConfiguration(final ElasticJob elasticJob, DataTrans entity) {
 		JobCoreConfiguration jobCoreConfiguration = JobCoreConfiguration
 				.newBuilder(entity.getName(), entity.getCron(), entity.getShardingTotalCount())
 				.shardingItemParameters(entity.getShardingItemParameters())
