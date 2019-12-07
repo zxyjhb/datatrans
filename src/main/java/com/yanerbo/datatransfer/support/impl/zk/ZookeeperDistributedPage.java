@@ -2,9 +2,6 @@ package com.yanerbo.datatransfer.support.impl.zk;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import javax.annotation.Resource;
 import org.apache.curator.framework.recipes.atomic.DistributedAtomicInteger;
 import org.apache.curator.retry.RetryNTimes;
@@ -79,6 +76,18 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 		String key = String.format(PAGESTART, jobName, shardingItem);
 		//赋值
 		DataTrans dataTrans = dataTransConfig.getDataTrans(jobName);
+		return pageInfoByPost(shardingItem, shardingTotal, key, dataTrans);
+	}
+	
+	/**
+	 * 按顺序
+	 * @param shardingItem
+	 * @param shardingTotal
+	 * @param key
+	 * @param dataTrans
+	 * @return
+	 */
+	private Page pageInfoBySeq(int shardingItem, int shardingTotal, String key, DataTrans dataTrans) {
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
 		synchronized (this) {
 			try{
@@ -92,7 +101,34 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				return page;
 				
 			}catch(Exception e) {
-				log.error("getPage fail ",e);
+				log.error("pageInfo fail ", e);
+			}
+		}
+		return null;
+	}
+	/**
+	 * 按起始位置
+	 * @param shardingItem
+	 * @param shardingTotal
+	 * @param key
+	 * @param dataTrans
+	 * @return
+	 */
+	private Page pageInfoByPost(int shardingItem, int shardingTotal, String key, DataTrans dataTrans) {
+		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
+		synchronized (this) {
+			try{
+				//获取当前页
+				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
+				int pageStart = atomicInteger.get().postValue();
+				//查询当前页信息
+				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
+				//当前结束值，作为下一个开始值
+				atomicInteger.forceSet(page.getPageEnd());
+				return page;
+				
+			}catch(Exception e) {
+				log.error("pageInfo fail ", e);
 			}
 		}
 		return null;

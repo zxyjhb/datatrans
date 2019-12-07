@@ -102,13 +102,14 @@ public class DataTransManager implements IDataTransManager{
 					//2、存在数字FID，且存在不连续性（最大FID大于总行数的两倍）,按当前FID进行顺序分页
 					//3、其他分页字段（可以自定义分页逻辑）
 					Page page = distributedPage.pageInfo(dataTrans.getName(), shardingItem, shardingTotal);
+					//开始位置和结束位置一样，那就是跑完了
+					if(page.getPageStart() == page.getPageEnd()){
+						log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + "执行完毕");
+						return;
+					}
 					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",分页耗时：" + (System.currentTimeMillis() - startTime) +  page);
 					//获取原表数据
 					List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, shardingItem, shardingTotal, page.getPageStart(), page.getPageEnd()));
-					//没有数据了
-					if(datas ==null || datas.isEmpty()){
-						return;
-					}
 					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",查询耗时：" + (System.currentTimeMillis() - startTime));
 					startTime = System.currentTimeMillis();
 					dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);

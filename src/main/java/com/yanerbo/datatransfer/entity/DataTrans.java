@@ -12,9 +12,13 @@ public class DataTrans {
 	 */
 	private String name;
 	/**
-	 * 运行模式
+	 * 运行模式（all全量、add增量、none不运行）
 	 */
 	private String mode;
+	/**
+	 * 分页模式（post起始位置分页、seq顺序分页）
+	 */
+	private String pageType;
 	/**
 	 * 源表名
 	 */
@@ -43,7 +47,6 @@ public class DataTrans {
 	 * 目标sql
 	 */
 	private String targetSql;
-	
 	/**
 	 * 分页
 	 */
@@ -79,6 +82,13 @@ public class DataTrans {
 	}
 	public void setMode(String mode) {
 		this.mode = mode;
+	}
+	
+	public String getPageType() {
+		return pageType;
+	}
+	public void setPageType(String pageType) {
+		this.pageType = pageType;
 	}
 	public String getSourceTable() {
 		return sourceTable;
@@ -155,12 +165,11 @@ public class DataTrans {
 	}
 	@Override
 	public String toString() {
-		return "DataTransEntity [name=" + name + ", mode=" + mode + ", sourceTable=" + sourceTable + ", sourceKey="
-				+ sourceKey + ", sourceColumns=" + sourceColumns + ", sourceSql=" + sourceSql + ", targetTable="
-				+ targetTable + ", targetColumns=" + targetColumns + ", targetSql=" + targetSql + ", pageCount="
-				+ pageCount + ", maxThread=" + maxThread + ", cron=" + cron + ", shardingTotalCount="
+		return "DataTrans [name=" + name + ", mode=" + mode + ", pageType=" + pageType + ", sourceTable=" + sourceTable
+				+ ", sourceKey=" + sourceKey + ", sourceColumns=" + sourceColumns + ", sourceSql=" + sourceSql
+				+ ", targetTable=" + targetTable + ", targetColumns=" + targetColumns + ", targetSql=" + targetSql
+				+ ", pageCount=" + pageCount + ", maxThread=" + maxThread + ", cron=" + cron + ", shardingTotalCount="
 				+ shardingTotalCount + ", shardingItemParameters=" + shardingItemParameters + "]";
 	}
-	
 
 }

@@ -9,19 +9,19 @@ public final class Page {
 	/**
 	 * 当前页
 	 */
-	private volatile int currentPage;
+	private int currentPage;
 	/**
 	 * 起始位置
 	 */
-	private volatile int pageStart;
+	private int pageStart;
 	/**
 	 * 结束位置
 	 */
-	private volatile int pageEnd;
+	private int pageEnd;
 	/**
 	 * 总数
 	 */
-	private volatile int totalCount;
+	private int totalCount;
 	
 	public int getCurrentPage() {
 		return currentPage;
