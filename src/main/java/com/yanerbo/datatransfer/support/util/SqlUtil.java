@@ -30,6 +30,12 @@ public class SqlUtil {
 		return "select count(1) from " + tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem;
 	}
 	
+	public static String getPagePost(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
+		return "select min("+ key+ ") pageStart, max(" + key + ") pageEnd, count(1) totalCount from " 
+				+ tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem
+				+ " and "+ key+ " >= " + start + " and rownum<= " + pageCount;
+	}
+	
 	public static String getPageInfo(String tableName, String key, int shardingItem, int shardingTotal) {
 		return "select min("+ key+ ") startPostPage, max(" + key + ") endPostPage, count(1) totalCount from " + tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem;
 	}
@@ -81,7 +87,7 @@ public class SqlUtil {
 		return true;
 	}
 	
-	public static String builderSelect(DataTrans entity,int shardingItem, int shardingTotal, int currentPage, int startPost) {
+	public static String builderSelect(DataTrans entity,int shardingItem, int shardingTotal, int start, int end) {
 		/**
 		 * 如果表名和字段名称为null，那么就从sql进行构建
 		 */
@@ -93,8 +99,8 @@ public class SqlUtil {
 		}
 		//添加分片分页信息
 		sqlBuilder.append(" where mod(" + entity.getSourceKey() + "," + shardingTotal + ") = " + shardingItem);
-		sqlBuilder.append(" and ").append(entity.getSourceKey()).append(" >= ").append(startPost + currentPage*entity.getPageCount());
-		sqlBuilder.append(" and ").append(entity.getSourceKey()).append(" < ").append(startPost + (currentPage+1)*entity.getPageCount());
+		sqlBuilder.append(" and ").append(entity.getSourceKey()).append(" >= ").append(start);
+		sqlBuilder.append(" and ").append(entity.getSourceKey()).append(" < ").append(end);
 //		sqlBuilder.append(" and rownum<= ").append(entity.getPageCount());
 		System.out.println(sqlBuilder.toString());
 		return sqlBuilder.toString();

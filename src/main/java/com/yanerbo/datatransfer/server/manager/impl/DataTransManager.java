@@ -34,9 +34,10 @@ public class DataTransManager implements IDataTransManager{
 	 */
 	private final static Logger log = LoggerFactory.getLogger(DataTransManager.class);
 	/**
-	 * 线程池
+	 * 线程池(双倍的当前机器核数)
+	 * 再扩两倍吧
 	 */
-	private final static ExecutorService executor = Executors.newFixedThreadPool(50);
+	private final static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4);
 	/**
 	 * 分布式处理分页
 	 */
@@ -79,38 +80,42 @@ public class DataTransManager implements IDataTransManager{
 	 */
 	@Override
 	public boolean trans(String jobName) {
-		return trans(jobName, 0, 0);
+		return trans(jobName, 1, 1);
 	}
 	/**
-	 * 数据分片传输
+	 * 数据分片传输（多线程处理）
 	 */
 	@Override
 	public boolean trans(String jobName, int shardingItem, int shardingTotal) {
 		//获取传输配置信息
 		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(jobName));
-		//开始进行数据迁移		
-		executor.execute(new Runnable() {
-			
-			@Override
-			public void run() {
-				
-				long startTime = System.currentTimeMillis();
-				Page page = distributedPage.getPage(jobName, shardingItem, shardingTotal);
-				log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",分页耗时：" + (System.currentTimeMillis() - startTime) +  page);
-				//当前分片已经跑完，就停止了
-				if(page.getStartPostPage() + page.getCurrentPage()*(dataTrans.getPageCount()+1) > page.getEndPostPage()){
-					log.info("当前分片已经跑完，运行完毕！");
-					return;
+		//并行去处理
+		for(int i = 1; i<dataTrans.getMaxThread(); i++){
+			//开始进行数据迁移
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					long startTime = System.currentTimeMillis();
+					//这里处理并发分页
+					//按数据分布，进行不同的分页逻辑
+					//1、存在数字FID，且存在连续性（最大FID不大于总行数的两倍）,按页数去分页
+					//2、存在数字FID，且存在不连续性（最大FID大于总行数的两倍）,按当前FID进行顺序分页
+					//3、其他分页字段（可以自定义分页逻辑）
+					Page page = distributedPage.pageInfo(dataTrans.getName(), shardingItem, shardingTotal);
+					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",分页耗时：" + (System.currentTimeMillis() - startTime) +  page);
+					//获取原表数据
+					List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, shardingItem, shardingTotal, page.getPageStart(), page.getPageEnd()));
+					//没有数据了
+					if(datas ==null || datas.isEmpty()){
+						return;
+					}
+					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",查询耗时：" + (System.currentTimeMillis() - startTime));
+					startTime = System.currentTimeMillis();
+					dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);
+					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",保存耗时：" + (System.currentTimeMillis() - startTime));
 				}
-				//获取原表数据
-				List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, shardingItem, shardingTotal, page.getCurrentPage(), page.getStartPostPage()));
-				log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",查询耗时：" + (System.currentTimeMillis() - startTime) +  page);
-				startTime = System.currentTimeMillis();
-				dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);
-				log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",保存耗时：" + (System.currentTimeMillis() - startTime) +  page);
-			}
-		
-		});
+			});
+		}
 		return true;
 	}
 }

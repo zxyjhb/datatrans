@@ -11,19 +11,7 @@ import com.yanerbo.datatransfer.support.impl.IDistributedPage;
 public class RedisDistributedPage implements IDistributedPage{
 
 	@Override
-	public int getTotalCount(String jobName, int shardingItem, int shardingTotal) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int getCurrentPage(String jobName, int shardingItem, int shardingTotal) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public Page getPage(String jobName, int shardingItem, int shardingTotal) {
+	public Page pageInfo(String jobName, int shardingItem, int shardingTotal) {
 		// TODO Auto-generated method stub
 		return null;
 	}

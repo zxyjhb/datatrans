@@ -5,53 +5,41 @@ package com.yanerbo.datatransfer.entity;
  * @author 274818
  *
  */
-public class Page {
-	
+public final class Page {
 	/**
 	 * 当前页
 	 */
-	private int currentPage;
+	private volatile int currentPage;
 	/**
 	 * 起始位置
 	 */
-	private int startPostPage;
+	private volatile int pageStart;
 	/**
 	 * 结束位置
 	 */
-	private int endPostPage;
+	private volatile int pageEnd;
 	/**
 	 * 总数
 	 */
-	private int totalCount;
+	private volatile int totalCount;
 	
-	public Page(){
-		
-	}
-	
-	public Page(int currentPage, int startPostPage, int endPostPage, int totalCount) {
-		super();
-		this.currentPage = currentPage;
-		this.startPostPage = startPostPage;
-		this.endPostPage = endPostPage;
-		this.totalCount = totalCount;
-	}
 	public int getCurrentPage() {
 		return currentPage;
 	}
 	public void setCurrentPage(int currentPage) {
 		this.currentPage = currentPage;
 	}
-	public int getStartPostPage() {
-		return startPostPage;
+	public int getPageStart() {
+		return pageStart;
 	}
-	public void setStartPostPage(int startPostPage) {
-		this.startPostPage = startPostPage;
+	public void setPageStart(int pageStart) {
+		this.pageStart = pageStart;
 	}
-	public int getEndPostPage() {
-		return endPostPage;
+	public int getPageEnd() {
+		return pageEnd;
 	}
-	public void setEndPostPage(int endPostPage) {
-		this.endPostPage = endPostPage;
+	public void setPageEnd(int pageEnd) {
+		this.pageEnd = pageEnd;
 	}
 	public int getTotalCount() {
 		return totalCount;
@@ -59,10 +47,10 @@ public class Page {
 	public void setTotalCount(int totalCount) {
 		this.totalCount = totalCount;
 	}
-	
 	@Override
 	public String toString() {
-		return "Page [currentPage=" + currentPage + ", startPostPage=" + startPostPage + ", endPostPage=" + endPostPage
+		return " Page [currentPage=" + currentPage + ", pageStart=" + pageStart + ", pageEnd=" + pageEnd
 				+ ", totalCount=" + totalCount + "]";
 	}
+	
 }

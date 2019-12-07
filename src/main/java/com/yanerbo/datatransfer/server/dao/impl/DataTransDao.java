@@ -28,9 +28,6 @@ public class DataTransDao implements IDataTransDao{
 	
 	@Autowired
 	private DataSourceManager dataSourceManager;
-	
-	
-	
 	/**
 	 * 获取条数
 	 * @param sql
@@ -43,15 +40,13 @@ public class DataTransDao implements IDataTransDao{
 		return dataSourceManager.getJdbcTemplate(type).queryForObject(sql, new RowMapper<Page>(){
 			@Override
 			public Page mapRow(ResultSet rs, int rowNum) throws SQLException {
-				
 				Page page = new Page();  
 				page.setTotalCount(rs.getInt("totalCount"));
-				page.setStartPostPage(rs.getInt("startPostPage"));
-				page.setEndPostPage(rs.getInt("endPostPage"));
+				page.setPageStart(rs.getInt("pageStart"));
+				page.setPageEnd(rs.getInt("pageEnd"));
 				return page;
 			}
 		});
-//		return (Page) dataSourceManager.getJdbcTemplate(type).queryForObject(sql, Page.class);
 	}
 	
 	/**

@@ -7,4 +7,6 @@ package com.yanerbo.datatransfer.consumer;
  */
 public class DataTransConsumer {
 
+	
+	
 }
