@@ -17,6 +17,7 @@ import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.entity.DataTrans;
+import com.yanerbo.datatransfer.entity.RunType;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.job.DataTransJob;
 
@@ -87,7 +88,7 @@ public class ElasticJobConfigSupport implements InitializingBean{
 		
 		for (final DataTrans entity : dataTransConfig.getSchedules()) {
 			try {
-				if("none".equals(entity.getMode())) {
+				if(RunType.none.name().equals(entity.getMode())) {
 					log.info("初始化定时任务 ：{ "+ entity.toString()+" } 模式为none，不用启动");
 					continue;
 				}

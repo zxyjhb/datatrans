@@ -14,12 +14,18 @@ import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.entity.DataTrans;
 import com.yanerbo.datatransfer.entity.Page;
+import com.yanerbo.datatransfer.entity.PageType;
+import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.entity.DataType;
+import com.yanerbo.datatransfer.entity.ErrorCode;
 import com.yanerbo.datatransfer.server.dao.impl.DataTransDao;
 import com.yanerbo.datatransfer.support.impl.IDistributedPage;
 import com.yanerbo.datatransfer.support.util.SqlUtil;
 
 /**
+ * 
+ * 这里采用zk作为分布式计数存储：
+ * 其实可以做一个高可用，当zk不可用的时候，使用本地缓存进行存储
  * 
  * @author 274818
  *
@@ -65,29 +71,40 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	
 	
 	/**
-	 * 获取当前总页数
+	 * 这里处理并发分页
+	 * 按数据分布，进行不同的分页逻辑
+	 * 1、存在数字FID，且存在连续性（最大FID不大于总行数的两倍）,按页数去分页
+	 * 2、存在数字FID，且存在不连续性（最大FID大于总行数的两倍）,按当前FID进行顺序分页
+	 * 3、其他分页字段（可以自定义分页逻辑）
 	 * @param jobName
 	 * @param shardingItem
 	 * @return
 	 */
 	@Override
 	public Page pageInfo(String jobName, int shardingItem, int shardingTotal){
-		
-		String key = String.format(PAGESTART, jobName, shardingItem);
 		//赋值
 		DataTrans dataTrans = dataTransConfig.getDataTrans(jobName);
-		return pageInfoByPost(shardingItem, shardingTotal, key, dataTrans);
+		//如果是按其实位置分页
+		if(PageType.post.name().equals(dataTrans.getPageType())){
+			return pageInfoByPost(dataTrans, shardingItem, shardingTotal);
+		}
+		else if(PageType.seq.name().equals(dataTrans.getPageType())){
+			return pageInfoBySeq(dataTrans, shardingItem, shardingTotal);
+		}
+		throw new DataTransRuntimeException(ErrorCode.ERR003);
 	}
 	
 	/**
-	 * 按顺序
+	 * 按顺序分页
 	 * @param shardingItem
 	 * @param shardingTotal
 	 * @param key
 	 * @param dataTrans
 	 * @return
 	 */
-	private Page pageInfoBySeq(int shardingItem, int shardingTotal, String key, DataTrans dataTrans) {
+	private Page pageInfoBySeq(DataTrans dataTrans, int shardingItem, int shardingTotal) {
+		
+		String key = String.format(CURRENTPAGE, dataTrans.getName(), shardingItem);
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
 		synchronized (this) {
 			try{
@@ -107,14 +124,16 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 		return null;
 	}
 	/**
-	 * 按起始位置
+	 * 按起始位置（每次去获取当前执行的位置）
 	 * @param shardingItem
 	 * @param shardingTotal
 	 * @param key
 	 * @param dataTrans
 	 * @return
 	 */
-	private Page pageInfoByPost(int shardingItem, int shardingTotal, String key, DataTrans dataTrans) {
+	private Page pageInfoByPost(DataTrans dataTrans, int shardingItem, int shardingTotal) {
+		
+		String key = String.format(PAGESTART, dataTrans.getName(), shardingItem);
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
 		synchronized (this) {
 			try{
@@ -157,35 +176,47 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	public int setData(String key, int data){
 		DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
 		try {
-			if(atomicInteger.get().postValue() == DEFAULT){
-				atomicInteger.add(data);
-			}
-			return atomicInteger.get().postValue();
+			return atomicInteger.add(data).postValue();
 		}catch(Exception e) {
 			log.error("setData fail ",e);
 		}
 		return -1;
 	}
 	/**
+	 * 是否重新计数
+	 * @param key
+	 * @param initialize
+	 * @return
+	 */
+	private DistributedAtomicInteger getAtomicInteger(String key, boolean initialize){
+		
+		//存在，直接返回
+		if(atomicIntegerMap.containsKey(key)){
+			return atomicIntegerMap.get(key);
+		}
+		//不存在，则初始化
+		else{
+			synchronized (atomicIntegerMap) {
+				DistributedAtomicInteger atomicInteger = new DistributedAtomicInteger(regCenter.getClient(), key, new RetryNTimes(3, 1000));
+				try{
+					//初始化的时候强制归零
+					if(initialize){
+						atomicInteger.forceSet(DEFAULT);
+					}
+				}catch(Exception e) {
+					log.error("atomicInteger initialize fail ", e);
+				}
+				return atomicIntegerMap.put(key, atomicInteger);
+			}
+		}
+	}
+	
+	/**
 	 * (这里因为是job去跑，理论上是没有锁的问题)
 	 * @param key
 	 * @return
 	 */
 	private DistributedAtomicInteger getAtomicInteger(String key){
-		
-		//不存在，则初始化
-		if(!atomicIntegerMap.containsKey(key)){
-			synchronized (atomicIntegerMap) {
-				DistributedAtomicInteger atomicInteger = new DistributedAtomicInteger(regCenter.getClient(), key, new RetryNTimes(3, 1000));
-				try{
-					//初始化的时候强制归零
-					atomicInteger.forceSet(DEFAULT);
-				}catch(Exception e) {
-					log.error("atomicInteger initialize fail ", e);
-				}
-				atomicIntegerMap.put(key, atomicInteger);
-			}
-		}
-		return atomicIntegerMap.get(key);
+		return getAtomicInteger(key,true);
 	}
 }

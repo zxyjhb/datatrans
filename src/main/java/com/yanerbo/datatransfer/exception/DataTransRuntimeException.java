@@ -1,4 +1,7 @@
 package com.yanerbo.datatransfer.exception;
+
+import com.yanerbo.datatransfer.entity.ErrorCode;
+
 /**
  * 运行异常类
  * @author jihaibo
@@ -17,5 +20,21 @@ public class DataTransRuntimeException extends RuntimeException{
 	 */
 	public DataTransRuntimeException(String message) {
 		super(message);
+	}
+	
+	/**
+	 * 
+	 * @param message
+	 */
+	public DataTransRuntimeException(ErrorCode code) {
+		super(code.getMsg());
+	}
+
+	/**
+	 * 
+	 * @param message
+	 */
+	public DataTransRuntimeException(ErrorCode code, Throwable cause) {
+		super(code.getMsg(), cause);
 	}
 }
