@@ -3,6 +3,8 @@ package com.yanerbo.datatransfer.config;
 import java.util.Map;
 import java.util.Properties;
 import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,7 +44,6 @@ public class DataSourceConfig {
 	@Bean(name="sourceDataSource")
 	@ConfigurationProperties(prefix = "datatrans.datasource.source")
     public DataSource sourceDataSource() {
-		
 		DruidDataSource druidDataSource = new DruidDataSource();
 		druidDataSource.setConnectProperties(addDruidPrefix(sourceDataSourcePoolProperties()));
         return druidDataSource;

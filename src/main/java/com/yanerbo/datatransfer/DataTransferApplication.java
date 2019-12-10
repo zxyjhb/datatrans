@@ -2,6 +2,7 @@ package com.yanerbo.datatransfer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -12,7 +13,7 @@ import com.alibaba.druid.support.http.StatViewServlet;
  * @author 274818
  *
  */
-@SpringBootApplication
+@SpringBootApplication(exclude= {DataSourceAutoConfiguration.class})
 public class DataTransferApplication {
 	
 	/***
@@ -34,8 +35,8 @@ public class DataTransferApplication {
 	 * @return
 	 */
 	@Bean
-	public ServletRegistrationBean<StatViewServlet> druidStatViewServlet() {
-		ServletRegistrationBean<StatViewServlet> registrationBean = new ServletRegistrationBean<>(new StatViewServlet(),  "/druid/*");
+	public ServletRegistrationBean druidStatViewServlet() {
+		ServletRegistrationBean registrationBean = new ServletRegistrationBean(new StatViewServlet(),  "/druid/*");
 		//registrationBean.addInitParameter("allow", "127.0.0.1");// IP白名单 (没有配置或者为空，则允许所有访问)
 		//registrationBean.addInitParameter("deny", "");// IP黑名单 (存在共同时，deny优先于allow)
 		registrationBean.addInitParameter("loginUsername", "root");
