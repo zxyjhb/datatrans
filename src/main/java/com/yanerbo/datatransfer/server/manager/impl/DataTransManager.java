@@ -97,10 +97,6 @@ public class DataTransManager implements IDataTransManager{
 				public void run() {
 					long startTime = System.currentTimeMillis();
 					//这里处理并发分页
-					//按数据分布，进行不同的分页逻辑
-					//1、存在数字FID，且存在连续性（最大FID不大于总行数的两倍）,按页数去分页
-					//2、存在数字FID，且存在不连续性（最大FID大于总行数的两倍）,按当前FID进行顺序分页
-					//3、其他分页字段（可以自定义分页逻辑）
 					Page page = distributedPage.pageInfo(dataTrans.getName(), shardingItem, shardingTotal);
 					//开始位置和结束位置一样，那就是跑完了
 					if(page.getPageStart() == page.getPageEnd()){

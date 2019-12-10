@@ -18,7 +18,7 @@ public class DataTrans {
 	/**
 	 * 分页模式（post起始位置分页、seq顺序分页）
 	 */
-	private String pageType;
+	private String pageType = PageType.post.name();
 	/**
 	 * 源表名
 	 */

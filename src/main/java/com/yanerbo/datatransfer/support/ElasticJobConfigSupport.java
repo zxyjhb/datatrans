@@ -38,7 +38,7 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	/**
 	 * 已注册job
 	 */
-	private static final Map<String, String> JOB_CONFIG_MAP = new HashMap<String, String>();
+	private static final Map<String, SpringJobScheduler> JOB_MAP = new HashMap<String, SpringJobScheduler>();
 	/**
 	 * 注册中心配置
 	 */
@@ -67,18 +67,17 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 * @param jobName
 	 * @return
 	 */
-	public static String getJobConfig(String jobName) {
-		return JOB_CONFIG_MAP.get(jobName);
+	public static SpringJobScheduler getJobConfig(String jobName) {
+		return JOB_MAP.get(jobName);
 	}
-
 	/**
 	 * 更改jobConfig
 	 * 
 	 * @param jobName
 	 * @param jobConfig
 	 */
-	public static void setJobConfig(String jobName, String jobConfig) {
-		JOB_CONFIG_MAP.put(jobName, jobConfig);
+	public static void setJobConfig(String jobName, SpringJobScheduler jobConfig) {
+		JOB_MAP.put(jobName, jobConfig);
 	}
 	/**
 	 * 
@@ -93,6 +92,7 @@ public class ElasticJobConfigSupport implements InitializingBean{
 					continue;
 				}
 	 			SpringJobScheduler jobScheduler = jobScheduler(dataTransJob, entity);
+	 			setJobConfig(entity.getName(), jobScheduler);
 	 			jobScheduler.init();
 	 			log.info("初始化定时任务 ：{ "+ entity.toString()+" } ");
 	 		} catch (Exception e) {

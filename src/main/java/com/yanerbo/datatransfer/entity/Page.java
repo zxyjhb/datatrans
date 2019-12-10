@@ -9,19 +9,28 @@ public final class Page {
 	/**
 	 * 当前页
 	 */
-	private int currentPage;
+	private int currentPage = 0;
 	/**
 	 * 起始位置
 	 */
-	private int pageStart;
+	private int pageStart = 0;
 	/**
 	 * 结束位置
 	 */
-	private int pageEnd;
+	private int pageEnd = 0;
 	/**
 	 * 总数
 	 */
-	private int totalCount;
+	private int totalCount = 0;
+	/**
+	 * 
+	 */
+	public void setEmpty(){
+		currentPage = 0;
+		pageStart = 0;
+		pageEnd = 0;
+		totalCount = 0; 
+	}
 	
 	public int getCurrentPage() {
 		return currentPage;

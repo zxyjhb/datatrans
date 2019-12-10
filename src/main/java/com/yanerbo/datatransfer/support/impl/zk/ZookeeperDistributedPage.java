@@ -84,7 +84,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	public Page pageInfo(String jobName, int shardingItem, int shardingTotal){
 		//赋值
 		DataTrans dataTrans = dataTransConfig.getDataTrans(jobName);
-		//如果是按其实位置分页
+		//如果是按起始位置分页
 		if(PageType.post.name().equals(dataTrans.getPageType())){
 			return pageInfoByPost(dataTrans, shardingItem, shardingTotal);
 		}
@@ -118,7 +118,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				return page;
 				
 			}catch(Exception e) {
-				log.error("pageInfo fail ", e);
+				log.error("dataTrans: " + dataTrans + " pageInfoBySeq fail ", e);
 			}
 		}
 		return null;
@@ -142,12 +142,16 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				int pageStart = atomicInteger.get().postValue();
 				//查询当前页信息
 				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
-				//当前结束值，作为下一个开始值
-				atomicInteger.forceSet(page.getPageEnd());
+				//如果开始和结束位置为同一个了，那么说明分页搞完了
+				if(page.getPageStart() == page.getPageEnd()){
+					atomicInteger.forceSet(DEFAULT);
+				}else{
+					//当前结束值，作为下一个开始值
+					atomicInteger.compareAndSet(pageStart, page.getPageEnd());
+				}
 				return page;
-				
 			}catch(Exception e) {
-				log.error("pageInfo fail ", e);
+				log.error("dataTrans: " + dataTrans + " pageInfoByPost fail ", e);
 			}
 		}
 		return null;
@@ -163,7 +167,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 		try {
 			return getAtomicInteger(key).get().postValue();
 		}catch(Exception e) {
-			log.error("setData fail ",e);
+			log.error("key: " + key + " getData fail ",e);
 		}
 		return -1;
 	}
@@ -178,7 +182,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 		try {
 			return atomicInteger.add(data).postValue();
 		}catch(Exception e) {
-			log.error("setData fail ",e);
+			log.error("key: " + key + "setData fail ",e);
 		}
 		return -1;
 	}
@@ -190,12 +194,8 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 */
 	private DistributedAtomicInteger getAtomicInteger(String key, boolean initialize){
 		
-		//存在，直接返回
-		if(atomicIntegerMap.containsKey(key)){
-			return atomicIntegerMap.get(key);
-		}
 		//不存在，则初始化
-		else{
+		if(!atomicIntegerMap.containsKey(key)){
 			synchronized (atomicIntegerMap) {
 				DistributedAtomicInteger atomicInteger = new DistributedAtomicInteger(regCenter.getClient(), key, new RetryNTimes(3, 1000));
 				try{
@@ -204,11 +204,12 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 						atomicInteger.forceSet(DEFAULT);
 					}
 				}catch(Exception e) {
-					log.error("atomicInteger initialize fail ", e);
+					log.error("key: " + key + " atomicInteger initialize fail ", e);
 				}
-				return atomicIntegerMap.put(key, atomicInteger);
+				atomicIntegerMap.put(key, atomicInteger);
 			}
 		}
+		return atomicIntegerMap.get(key);
 	}
 	
 	/**
@@ -217,6 +218,6 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 * @return
 	 */
 	private DistributedAtomicInteger getAtomicInteger(String key){
-		return getAtomicInteger(key,true);
+		return getAtomicInteger(key, true);
 	}
 }
