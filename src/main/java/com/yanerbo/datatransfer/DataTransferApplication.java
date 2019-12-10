@@ -9,6 +9,9 @@ import org.springframework.context.annotation.Bean;
 import com.alibaba.druid.support.http.StatViewServlet;
 
 /**
+ * 
+ * 这里需要剔除DataSourceAutoConfiguration类，因为存在多个数据源
+ * springboot 2.0版本以上就没有这个了
  * spring 启动类
  * @author 274818
  *
