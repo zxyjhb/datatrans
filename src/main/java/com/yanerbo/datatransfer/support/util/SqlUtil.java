@@ -10,6 +10,16 @@ import com.yanerbo.datatransfer.entity.DataTrans;
  */
 public class SqlUtil {
 	
+	
+	
+	/**
+	 * 全表
+	 * @param tableName
+	 * @return
+	 */
+	public static String getConfigSql() {
+		return "select * from t_datatrans_config";
+	}
 	/**
 	 * 全表
 	 * @param tableName
@@ -17,6 +27,24 @@ public class SqlUtil {
 	 */
 	public static String getAllCount(String tableName) {
 		return "select count(1) from " + tableName;
+	}
+	
+	/**
+	 * 全表
+	 * @param tableName
+	 * @return
+	 */
+	public static String delete(String tableName) {
+		return "delete from " + tableName;
+	}
+	
+	/**
+	 * 全表
+	 * @param tableName
+	 * @return
+	 */
+	public static String truncate(String tableName) {
+		return "truncate table " + tableName;
 	}
 	/**
 	 * 分片

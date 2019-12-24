@@ -14,7 +14,7 @@ import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
  *
  */
 @Component
-public class DataSourceManager {
+public class DataSourceUtil {
 	
 	@Autowired
 	@Qualifier("sourceJdbcTemplate")

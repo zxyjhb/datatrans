@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository;
 import com.yanerbo.datatransfer.entity.DataType;
 import com.yanerbo.datatransfer.entity.Page;
 import com.yanerbo.datatransfer.server.dao.IDataTransDao;
-import com.yanerbo.datatransfer.support.util.DataSourceManager;
+import com.yanerbo.datatransfer.support.util.DataSourceUtil;
 import com.yanerbo.datatransfer.support.util.SqlUtil;
 
 /**
@@ -27,7 +27,7 @@ public class DataTransDao implements IDataTransDao{
 	
 	
 	@Autowired
-	private DataSourceManager dataSourceManager;
+	private DataSourceUtil dataSourceUtil;
 	/**
 	 * 获取条数
 	 * @param sql
@@ -37,7 +37,7 @@ public class DataTransDao implements IDataTransDao{
 	@Override
 	public Page pageInfo(DataType type, String sql) {
 		
-		return dataSourceManager.getJdbcTemplate(type).queryForObject(sql, new RowMapper<Page>(){
+		return dataSourceUtil.getJdbcTemplate(type).queryForObject(sql, new RowMapper<Page>(){
 			@Override
 			public Page mapRow(ResultSet rs, int rowNum) throws SQLException {
 				Page page = new Page();  
@@ -57,7 +57,7 @@ public class DataTransDao implements IDataTransDao{
 	 */
 	@Override
 	public int count(DataType type, String sql) {
-		return dataSourceManager.getJdbcTemplate(type).queryForObject(sql, Integer.class);
+		return dataSourceUtil.getJdbcTemplate(type).queryForObject(sql, Integer.class);
 	}
 	
 	
@@ -69,7 +69,7 @@ public class DataTransDao implements IDataTransDao{
 	 */
 	@Override
 	public List<Map<String, Object>>  select(DataType type, String sql) {
-		return dataSourceManager.getJdbcTemplate(type).queryForList(sql);
+		return dataSourceUtil.getJdbcTemplate(type).queryForList(sql);
 	}
 	
 	
@@ -83,7 +83,7 @@ public class DataTransDao implements IDataTransDao{
 	public void insertBatch(DataType type, String sql, List<Map<String, Object>> datas) {
 		//批量保存
 		long startTime = System.currentTimeMillis();
-		dataSourceManager.getJdbcTemplate(type).batchUpdate(sql, new BatchPreparedStatementSetter() {
+		dataSourceUtil.getJdbcTemplate(type).batchUpdate(sql, new BatchPreparedStatementSetter() {
 			//获取字段列表
 			private String[] fields = SqlUtil.getFields(sql);
 			@Override
@@ -116,7 +116,7 @@ public class DataTransDao implements IDataTransDao{
 		
 		String[] fields = SqlUtil.getFields(sql);
 		long startTime = System.currentTimeMillis();
-		dataSourceManager.getJdbcTemplate(type).update(sql, new PreparedStatementSetter() {
+		dataSourceUtil.getJdbcTemplate(type).update(sql, new PreparedStatementSetter() {
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
 				for(int j = 0; j<fields.length;j++) {
@@ -125,6 +125,16 @@ public class DataTransDao implements IDataTransDao{
 			}
 		});
 		System.out.println("insert 耗时：" + (System.currentTimeMillis() - startTime) + "value: " + data);
+	}
+
+	@Override
+	public void delete(DataType type, String sql) {
+		dataSourceUtil.getJdbcTemplate(type).execute(sql);
+	}
+
+	@Override
+	public void truncate(DataType type, String sql) {
+		dataSourceUtil.getJdbcTemplate(type).execute(sql);
 	}
 
 

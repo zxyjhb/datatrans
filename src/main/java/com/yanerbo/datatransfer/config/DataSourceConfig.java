@@ -11,6 +11,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import com.alibaba.druid.filter.config.ConfigTools;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.util.DruidPasswordCallback;
+import com.yanerbo.datatransfer.entity.ErrorCode;
+import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 
 /**
  * 数据源配置（包含源数据库和目标数据库）
@@ -94,15 +96,16 @@ public class DataSourceConfig {
 		@Override
 	    public void setProperties(Properties properties) {
 			super.setProperties(properties);
-			String password = (String) properties.get("password");
-	        String publickey = (String) properties.get("publickey");
 	        try {
+				String password = (String) properties.get("password");
+		        String publickey = (String) properties.get("publickey");
+		        //如果没有公钥则不用加密
 	        	if(publickey != null) {
 	        		String dbpassword = ConfigTools.decrypt(publickey, password);
 	 	            setPassword(dbpassword.toCharArray());
 	        	}
 	        } catch (Exception e) {
-	        	
+	        	throw new DataTransRuntimeException(ErrorCode.ERR005, e);
 	        }
 	    }
 	}

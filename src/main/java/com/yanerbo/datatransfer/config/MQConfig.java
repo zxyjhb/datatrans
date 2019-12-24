@@ -2,7 +2,6 @@ package com.yanerbo.datatransfer.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import com.yanerbo.datatransfer.consumer.DataTransConcurrentlyConsumer;
 import com.yanerbo.datatransfer.consumer.DataTransConcurrentlyProducer;
 
