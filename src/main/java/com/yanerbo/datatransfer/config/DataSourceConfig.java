@@ -43,7 +43,8 @@ public class DataSourceConfig {
     public DataSource sourceDataSource() {
 		DruidDataSource druidDataSource = new DruidDataSource();
 		druidDataSource.setConnectProperties(addDruidPrefix(sourceDataSourcePoolProperties()));
-        return druidDataSource;
+		druidDataSource.setPasswordCallback(new DbPasswordCallback());
+		return druidDataSource;
     }
 
 

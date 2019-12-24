@@ -11,7 +11,7 @@ import com.yanerbo.datatransfer.consumer.DataTransConcurrentlyProducer;
  * @author 274818
  *
  */
-@Configuration
+//@Configuration
 public class MQConfig {
 
 	@Value("${rocketmq.namesrvAddr}")
