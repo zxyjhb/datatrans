@@ -97,8 +97,10 @@ public class DataSourceConfig {
 			String password = (String) properties.get("password");
 	        String publickey = (String) properties.get("publickey");
 	        try {
-	            String dbpassword = ConfigTools.decrypt(publickey, password);
-	            setPassword(dbpassword.toCharArray());
+	        	if(publickey != null) {
+	        		String dbpassword = ConfigTools.decrypt(publickey, password);
+	 	            setPassword(dbpassword.toCharArray());
+	        	}
 	        } catch (Exception e) {
 	        	
 	        }

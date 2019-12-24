@@ -201,6 +201,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				try{
 					//初始化的时候强制归零
 					if(initialize){
+						log.info("key: " + key + " atomicInteger initialize " + DEFAULT);
 						atomicInteger.forceSet(DEFAULT);
 					}
 				}catch(Exception e) {
