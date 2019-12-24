@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
 import com.yanerbo.datatransfer.entity.DataTrans;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 /**
@@ -15,6 +14,7 @@ import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 @Component
 @ConfigurationProperties(prefix = "datatrans")
 public class DataTransConfig {
+	
 	/**
 	 * 数据列表
 	 */
@@ -26,7 +26,6 @@ public class DataTransConfig {
 
 	public void setSchedules(List<DataTrans> schedules) {
 		this.schedules = schedules;
-		System.out.println(this.schedules);
 	}
 	
 	/**

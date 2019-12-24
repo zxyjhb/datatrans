@@ -11,13 +11,22 @@ public interface IDataTransManager {
 	 * @param config
 	 * @return
 	 */
-	public boolean trans(String jobName);
+	public boolean allTrans(String name);
 	
 	/**
 	 * 数据传输（进行数据迁移）分片
 	 * @param config
 	 * @return
 	 */
-	public boolean trans(String jobName, int shardingItem, int shardingTotal);
+	public boolean allTrans(String name, int shardingItem, int shardingTotal);
+	
+	/**
+	 * 数据传输（进行增量）
+	 * @param config
+	 * @return
+	 */
+	public boolean addTrans(String name, Object data);
+	
+	
 
 }

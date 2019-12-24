@@ -68,10 +68,6 @@ public class DataTransManager implements IDataTransManager{
 		if(dataTrans.getName()==null || dataTrans.getName().isEmpty()){
 			throw new DataTransRuntimeException("配置信息名称为空");
 		}
-		//配置信息名称为空
-		if(dataTrans.getMode() == null || !dataTrans.getMode().equals("all")){
-			throw new DataTransRuntimeException("配置信息传输模式不为全量");
-		}
 		return dataTrans;
 	}
 	
@@ -79,16 +75,19 @@ public class DataTransManager implements IDataTransManager{
 	 * 数据传输
 	 */
 	@Override
-	public boolean trans(String jobName) {
-		return trans(jobName, 1, 1);
+	public boolean allTrans(String name) {
+		return allTrans(name, 1, 1);
 	}
+	
+	
+	
 	/**
 	 * 数据分片传输（多线程处理）
 	 */
 	@Override
-	public boolean trans(String jobName, int shardingItem, int shardingTotal) {
+	public boolean allTrans(String name, int shardingItem, int shardingTotal) {
 		//获取传输配置信息
-		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(jobName));
+		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(name));
 		//并行去处理
 		for(int i = 1; i<dataTrans.getMaxThread(); i++){
 			//开始进行数据迁移
@@ -113,6 +112,14 @@ public class DataTransManager implements IDataTransManager{
 				}
 			});
 		}
+		return true;
+	}
+	
+	@Override
+	public boolean addTrans(String name, Object data) {
+		//获取传输配置信息
+		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(name));
+//		dataTransDao.save(data);
 		return true;
 	}
 }

@@ -1,7 +1,10 @@
 package com.yanerbo.datatransfer.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.yanerbo.datatransfer.consumer.DataTransConcurrentlyConsumer;
+import com.yanerbo.datatransfer.consumer.DataTransConcurrentlyProducer;
 
 /**
  * MQ配置
@@ -11,18 +14,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MQConfig {
 
-	@Value("${mq.namesrvAddr}")
+	@Value("${rocketmq.namesrvAddr}")
 	private String namesrvAddr;
 		
-	@Value("${mq.producerGroup}")
+	@Value("${rocketmq.producer.group}")
 	private String producerGroup;
 
-	@Value("${mq.consumerGroup}")
+	@Value("${rocketmq.consumer.group}")
 	private String consumerGroup;
 	
-	@Value("${mq.topic}")
+	@Value("${rocketmq.topic}")
 	private String topic;
 	
-	@Value("${mq.tag}")
+	@Value("${rocketmq.tag}")
 	private String tag;
+	
+	@Bean(initMethod = "startup", destroyMethod = "shutdown")
+	public DataTransConcurrentlyConsumer getDataTransConcurrentlyConsumer() {
+		return new DataTransConcurrentlyConsumer(namesrvAddr, consumerGroup, topic, tag);
+	}
+	
+	@Bean(initMethod = "startup", destroyMethod = "shutdown")
+	public DataTransConcurrentlyProducer getDataTransConcurrentlyProducer() {
+		return new DataTransConcurrentlyProducer(namesrvAddr, producerGroup, topic, tag);
+	}
 }

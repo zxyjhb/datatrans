@@ -25,6 +25,7 @@ public class DataSourceManager {
 	@Qualifier("targetJdbcTemplate")
 	private JdbcTemplate targetJdbcTemplate;
 	
+	
 	/**
 	 * 
 	 * @param type

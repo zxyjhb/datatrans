@@ -40,6 +40,10 @@ public class DataTrans {
 	 */
 	private String targetTable;
 	/**
+	 * 源表主键（分片字段）
+	 */
+	private String targetKey;
+	/**
 	 * 目标表字段
 	 */
 	private String targetColumns;
@@ -115,6 +119,13 @@ public class DataTrans {
 	public void setTargetTable(String targetTable) {
 		this.targetTable = targetTable;
 	}
+	
+	public String getTargetKey() {
+		return targetKey;
+	}
+	public void setTargetKey(String targetKey) {
+		this.targetKey = targetKey;
+	}
 	public String getTargetSql() {
 		return targetSql;
 	}
@@ -167,9 +178,10 @@ public class DataTrans {
 	public String toString() {
 		return "DataTrans [name=" + name + ", mode=" + mode + ", pageType=" + pageType + ", sourceTable=" + sourceTable
 				+ ", sourceKey=" + sourceKey + ", sourceColumns=" + sourceColumns + ", sourceSql=" + sourceSql
-				+ ", targetTable=" + targetTable + ", targetColumns=" + targetColumns + ", targetSql=" + targetSql
-				+ ", pageCount=" + pageCount + ", maxThread=" + maxThread + ", cron=" + cron + ", shardingTotalCount="
-				+ shardingTotalCount + ", shardingItemParameters=" + shardingItemParameters + "]";
+				+ ", targetTable=" + targetTable + ", targetKey=" + targetKey + ", targetColumns=" + targetColumns
+				+ ", targetSql=" + targetSql + ", pageCount=" + pageCount + ", maxThread=" + maxThread + ", cron="
+				+ cron + ", shardingTotalCount=" + shardingTotalCount + ", shardingItemParameters="
+				+ shardingItemParameters + "]";
 	}
 
 }
