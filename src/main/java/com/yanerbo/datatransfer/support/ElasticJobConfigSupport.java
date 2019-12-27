@@ -115,6 +115,9 @@ public class ElasticJobConfigSupport implements InitializingBean{
 					//清空目标表数据
 					log.info("【clear data】");
 					dataTransDao.delete(DataType.target, SqlUtil.delete(dataTrans.getTargetTable()));
+					//这里修改模式为all，后面的就不用初始化了
+					dataTrans.setMode(RunType.all.name());
+					dataTransConfig.setDataTransConfig(dataTrans);
 				}
 			}finally{
 				//释放锁

@@ -3,8 +3,9 @@ package com.yanerbo.datatransfer.controller;
 import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.yanerbo.datatransfer.server.manager.IDataTransManager;
 
+import com.yanerbo.datatransfer.config.DataTransConfig;
+import com.yanerbo.datatransfer.server.manager.IDataTransManager;
 /**
  * 
  * @author jihaibo
@@ -14,6 +15,8 @@ import com.yanerbo.datatransfer.server.manager.IDataTransManager;
 public class DataTransController {
 	
 	@Resource
+	private DataTransConfig dataTransConfig;
+	@Resource
 	private IDataTransManager dataTransManager;
 	
 	@GetMapping(value="/datatrans/config/list")
@@ -21,8 +24,6 @@ public class DataTransController {
 		
 		return "OK";
 	}
-
-	
 	
 	/**
 	 * 
@@ -37,8 +38,8 @@ public class DataTransController {
 	 * 
 	 * 
 	 */
-	@GetMapping(value="/datatrans/get")
-	public String get() {
+	@GetMapping(value="/datatrans/config/{name}")
+	public String updatedataTransConfig() {
 		return null;
 	}
 
