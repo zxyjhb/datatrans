@@ -3,8 +3,12 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+
+import com.alibaba.fastjson.JSON;
+import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.entity.DataTrans;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.server.dao.IDataTransConfigDao;
@@ -17,28 +21,42 @@ import com.yanerbo.datatransfer.server.dao.IDataTransConfigDao;
 @ConfigurationProperties(prefix = "datatrans")
 public class DataTransConfig implements InitializingBean{
 	
+	/**
+	 * zk path
+	 */
+	private static final String CONFIG_PATH = "/%s/dtconfig";
+	
+	/**
+	 * 数据列表（配置文件加载）
+	 */
+	private List<DataTrans> schedules = new ArrayList<>();
+	/**
+	 * 数据库加载
+	 */
 	@Autowired
 	private IDataTransConfigDao dataTransConfigDao;
 	/**
-	 * 数据列表
+	 * zk
 	 */
-	private List<DataTrans> schedules = new ArrayList<>();
+	@Autowired
+	@Qualifier("zookeeperRegistryCenter")
+	private ZookeeperRegistryCenter regCenter;
+	
+	
 
-	public List<DataTrans> getSchedules() {
-		
+	public List<DataTrans> getDataTransConfigs() {		
 		return schedules;
 	}
-
-	public void setSchedules(List<DataTrans> schedules) {
-		this.schedules = schedules;	
-	}
-	
-	
-	public void setDataTrans(DataTrans dataTrans) {
+	/**
+	 * 更新配置文件
+	 * @param dataTrans
+	 */
+	public void setDataTransConfig(DataTrans dataTrans) {
 		
 		for (int i=0; i<schedules.size(); i++) {
 			if(schedules.get(i).getName().equals(dataTrans.getName())) {
 				schedules.set(i, dataTrans);
+				regCenter.persist(String.format(CONFIG_PATH, dataTrans.getName()), JSON.toJSONString(dataTrans));
 				dataTransConfigDao.updateDataTrans(dataTrans);
 			}
 		}
@@ -76,11 +94,13 @@ public class DataTransConfig implements InitializingBean{
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		
-		List<DataTrans> dataTrans = dataTransConfigDao.getDataTransList();
-		if(dataTrans != null){
-			setSchedules(dataTrans);
+		//从数据库加载
+		List<DataTrans> dataTransList = dataTransConfigDao.getDataTransList();
+		if(dataTransList != null){
+			this.schedules = dataTransList;
+			for(DataTrans dataTrans : dataTransList){
+				regCenter.persist(String.format(CONFIG_PATH, dataTrans.getName()), JSON.toJSONString(dataTrans));
+			}
 		}
 	}
-
 }

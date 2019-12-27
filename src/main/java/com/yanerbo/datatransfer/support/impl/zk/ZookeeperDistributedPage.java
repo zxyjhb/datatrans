@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Resource;
 import org.apache.curator.framework.recipes.atomic.DistributedAtomicInteger;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
-import org.apache.curator.framework.recipes.locks.InterProcessReadWriteLock;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.retry.RetryNTimes;
 import org.slf4j.Logger;
@@ -13,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import com.dangdang.ddframe.job.lite.internal.election.LeaderService;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.entity.DataTrans;
@@ -22,7 +21,6 @@ import com.yanerbo.datatransfer.entity.RunType;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.entity.DataType;
 import com.yanerbo.datatransfer.entity.ErrorCode;
-import com.yanerbo.datatransfer.server.dao.IDataTransConfigDao;
 import com.yanerbo.datatransfer.server.dao.impl.DataTransDao;
 import com.yanerbo.datatransfer.support.impl.IDistributedPage;
 import com.yanerbo.datatransfer.support.util.SqlUtil;
@@ -49,11 +47,17 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	/**
 	 * zk当前页
 	 */
-	private static final String CURRENTPAGE = "/%s/%s/currentPage";
+	private static final String CURRENTPAGE = "/%s/currentPage/%s";
 	/**
 	 * zk当前起始位置
 	 */
-	private static final String STARTPAGE = "/%s/%s/startPage";
+	private static final String STARTPAGE = "/%s/startPage/%s";
+	/**
+	 * 清除数据锁
+	 */
+	private static final String CLEARLOCK = "/%s/clearLock";
+	
+	
 	/**
 	 * zk数据操作列表
 	 */
@@ -61,8 +65,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	
 	@Autowired
 	@Qualifier("zookeeperRegistryCenter")
-	private ZookeeperRegistryCenter regCenter;
-	
+	private ZookeeperRegistryCenter regCenter;	
 	/**
 	 * 数据传输job配置
 	 */
@@ -170,59 +173,28 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 */
 	private void clearTargetData(DataTrans dataTrans) throws Exception{
 		
-		String lockKey = String.format("/%s/clearLock", dataTrans.getName());
-		//使用zk排他锁
-		InterProcessSemaphoreMutex lock = new InterProcessSemaphoreMutex(regCenter.getClient(), lockKey);
-		DistributedAtomicInteger exec = new DistributedAtomicInteger(regCenter.getClient(), String.format("/%s/initExec", dataTrans.getName()), new RetryNTimes(3, 1000));
-//		exec.forceSet(DEFAULT);
-		try{
-			int value = exec.get().postValue();
-			//调用该方法后，会一直堵塞，直到抢夺到锁资源，或者zookeeper连接中断后，上抛异常
-			lock.acquire();
-			regCenter.persist(lockKey.concat("22"), "rwerwerwerwerwerwe");
-			System.out.println("lockKey.concat():" + regCenter.get(lockKey.concat("22")));
-			//执行增长一次（清除操作仅允许执行一次）
-			System.out.println("exec.get()：" + exec.get().postValue());
-			if(exec.get().postValue() == value){
-				//清空目标表数据
-				dataTransDao.delete(DataType.target, SqlUtil.delete(dataTrans.getTargetTable()));
-				exec.increment();
-				log.info("clear data");
+		if(RunType.all.name().equals(dataTrans.getMode())){
+			String lockKey = String.format(CLEARLOCK, dataTrans.getName());
+			//主节点
+			LeaderService leaderService = new LeaderService(regCenter, dataTrans.getName());
+			//使用zk排他锁（这里主要是在删除的时候 其他节点也阻塞一下）
+			InterProcessSemaphoreMutex lock = new InterProcessSemaphoreMutex(regCenter.getClient(), lockKey);
+			try{
+				//调用该方法后，会一直堵塞，直到抢夺到锁资源，或者zookeeper连接中断后，上抛异常
+				lock.acquire();
+				//主节点去删除数据（不需要每个节点都去操作）
+				if(leaderService.isLeader()){
+					//清空目标表数据
+					log.info("clear data");
+					dataTransDao.delete(DataType.target, SqlUtil.delete(dataTrans.getTargetTable()));
+				}
+			}finally{
+				//释放锁
+				lock.release();
 			}
-		}finally{
-			//释放锁
-			lock.release();
 		}
 	}
-	/**
-	 * 将数据保存到zk
-	 * @param key
-	 * @param data
-	 * @return
-	 */
-	public int getData(String key){
-		try {
-			return getAtomicInteger(key).get().postValue();
-		}catch(Exception e) {
-			log.error("key: " + key + " getData fail ",e);
-		}
-		return -1;
-	}
-	/**
-	 * 将数据保存到zk
-	 * @param key
-	 * @param data
-	 * @return
-	 */
-	public int setData(String key, int data){
-		DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
-		try {
-			return atomicInteger.add(data).postValue();
-		}catch(Exception e) {
-			log.error("key: " + key + "setData fail ",e);
-		}
-		return -1;
-	}
+	
 	/**
 	 * 是否重新计数
 	 * @param key
@@ -240,7 +212,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 					if(initialize){
 						log.info("key: " + key + " atomicInteger initialize " + DEFAULT);
 						atomicInteger.forceSet(DEFAULT);
-						clearTargetData(dataTransConfig.getLikeDataTrans(key));
+//						clearTargetData(dataTransConfig.getLikeDataTrans(key));
 					}
 				}catch(Exception e) {
 					log.error("key: " + key + " atomicInteger initialize fail ", e);

@@ -16,7 +16,6 @@ public class DataTransJob implements SimpleJob{
 	
 	@Override
 	public void execute(ShardingContext shardingContext) {
-		
 		DataTransManager dataTransManager = SpringContextUtil.getBean(DataTransManager.class, "dataTransManager");
 		dataTransManager.allTrans(shardingContext.getJobName(), shardingContext.getShardingItem(), shardingContext.getShardingTotalCount());
 	}
