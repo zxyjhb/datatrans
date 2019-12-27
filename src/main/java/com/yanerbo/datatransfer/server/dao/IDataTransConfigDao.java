@@ -11,8 +11,9 @@ import com.yanerbo.datatransfer.entity.DataTrans;
  */
 public interface IDataTransConfigDao {
 
+	public DataTrans getDataTrans(String name);
 	
-	public List<DataTrans> getDataTrans();
+	public List<DataTrans> getDataTransList();
 	
 	public void updateDataTrans(DataTrans dataTrans); 
 }

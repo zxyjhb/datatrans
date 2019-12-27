@@ -1,12 +1,13 @@
 package com.yanerbo.datatransfer.entity;
 
+import java.lang.reflect.Field;
+
 /**
  * 
  * @author jihaibo
  *
  */
 public class DataTrans {
-	
 	/**
 	 * 名称
 	 */
@@ -174,6 +175,37 @@ public class DataTrans {
 	public void setTargetColumns(String targetColumns) {
 		this.targetColumns = targetColumns;
 	}
+	/**
+	 * 
+	 * @return
+	 */
+	public static String selectConfigsSql(){
+		
+		StringBuilder sb = new StringBuilder("select ");
+		for(Field field : DataTrans.class.getDeclaredFields()){
+			sb.append(field.getName()).append(", ");
+		}
+		sb.deleteCharAt(sb.lastIndexOf(",")).append(" from ").append("t_datatrans_config");
+		return sb.toString();
+	}
+	/**
+	 * 
+	 * @return
+	 */
+	public static String updateConfigsSql(){
+		StringBuilder sb = new StringBuilder("update t_datatrans_config set ");
+		for(Field field : DataTrans.class.getDeclaredFields()){
+			sb.append(field.getName()).append(" = ?, ");
+			System.out.println("ps.setString(1, dataTrans.get" + field.getName() + "();");
+			
+		}
+		sb.deleteCharAt(sb.lastIndexOf(",")).append(" where name=? ");
+		return sb.toString();
+	}
+	/**
+	 * 
+	 */
+	
 	@Override
 	public String toString() {
 		return "DataTrans [name=" + name + ", mode=" + mode + ", pageType=" + pageType + ", sourceTable=" + sourceTable
@@ -182,6 +214,12 @@ public class DataTrans {
 				+ ", targetSql=" + targetSql + ", pageCount=" + pageCount + ", maxThread=" + maxThread + ", cron="
 				+ cron + ", shardingTotalCount=" + shardingTotalCount + ", shardingItemParameters="
 				+ shardingItemParameters + "]";
+	}
+	
+	
+	public static void main(String[] args){
+		System.out.println(DataTrans.selectConfigsSql());
+		System.out.println(DataTrans.updateConfigsSql());
 	}
 
 }

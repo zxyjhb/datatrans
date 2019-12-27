@@ -118,7 +118,7 @@ public class DataTransManager implements IDataTransManager{
 	@Override
 	public boolean addTrans(String name, Object data) {
 		//获取传输配置信息
-		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(name));
+//		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(name));
 //		dataTransDao.save(data);
 		return true;
 	}

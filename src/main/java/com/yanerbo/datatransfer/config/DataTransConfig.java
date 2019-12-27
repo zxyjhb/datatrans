@@ -33,15 +33,41 @@ public class DataTransConfig implements InitializingBean{
 		this.schedules = schedules;	
 	}
 	
+	
+	public void setDataTrans(DataTrans dataTrans) {
+		
+		for (int i=0; i<schedules.size(); i++) {
+			if(schedules.get(i).getName().equals(dataTrans.getName())) {
+				schedules.set(i, dataTrans);
+				dataTransConfigDao.updateDataTrans(dataTrans);
+			}
+		}
+	}
+	
 	/**
 	 * 获取分片配置信息
 	 * @param jobName
 	 * @return
 	 */
-	public DataTrans getDataTrans(String jobName) {
+	public DataTrans getLikeDataTrans(String name) {
+		if(name != null){
+			for (final DataTrans entity : schedules) {
+				if(name.contains(entity.getName())) {
+					return entity;
+				}
+			}
+		}
+		throw new DataTransRuntimeException("没有找到对应job配置");
+	}
+	/**
+	 * 获取分片配置信息
+	 * @param jobName
+	 * @return
+	 */
+	public DataTrans getDataTrans(String name) {
 		
 		for (final DataTrans entity : schedules) {
-			if(entity.getName().equals(jobName)) {
+			if(entity.getName().equals(name)) {
 				return entity;
 			}
 		}
@@ -51,7 +77,7 @@ public class DataTransConfig implements InitializingBean{
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		
-		List<DataTrans> dataTrans = dataTransConfigDao.getDataTrans();
+		List<DataTrans> dataTrans = dataTransConfigDao.getDataTransList();
 		if(dataTrans != null){
 			setSchedules(dataTrans);
 		}

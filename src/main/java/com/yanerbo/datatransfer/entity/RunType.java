@@ -7,5 +7,5 @@ package com.yanerbo.datatransfer.entity;
  */
 public enum RunType {
 
-	all,add,none;
+	all,init,add,none;
 }

@@ -64,6 +64,13 @@ public class SqlUtil {
 				+ " and "+ key+ " >= " + start + " and rownum<= " + pageCount;
 	}
 	
+	
+	public static String getInitPagePost(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
+		return "select min("+ key+ ") pageStart, max(" + key + ") pageEnd, count(1) totalCount from " 
+				+ tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem
+				+ " and "+ key+ " >= " + start + " and rownum<= " + pageCount;
+	}
+	
 	public static String getPageInfo(String tableName, String key, int shardingItem, int shardingTotal) {
 		return "select min("+ key+ ") startPostPage, max(" + key + ") endPostPage, count(1) totalCount from " + tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem;
 	}

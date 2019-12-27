@@ -1,7 +1,5 @@
 package com.yanerbo.datatransfer.support;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.Resource;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
@@ -20,6 +18,8 @@ import com.yanerbo.datatransfer.entity.DataTrans;
 import com.yanerbo.datatransfer.entity.RunType;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.job.DataTransJob;
+import com.yanerbo.datatransfer.server.dao.impl.DataTransDao;
+import com.yanerbo.datatransfer.support.util.DataTransContext;
 
 
 /**
@@ -36,10 +36,6 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 */
 	private Logger log = Logger.getLogger(ElasticJobConfigSupport.class);
 	/**
-	 * 已注册job
-	 */
-	private static final Map<String, SpringJobScheduler> JOB_MAP = new HashMap<String, SpringJobScheduler>();
-	/**
 	 * 注册中心配置
 	 */
 	@Resource
@@ -55,30 +51,16 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 */
 	@Resource
 	private DataTransJob dataTransJob;
+	
+	@Resource
+	private DataTransDao dataTransDao;
 	/**
 	 * job运行事件配置（其实暂时不需要）
 	 */
 	@Resource
 	private JobEventConfiguration jobEventConfiguration;
 
-	/**
-	 * 根据jobName获取配置
-	 * 
-	 * @param jobName
-	 * @return
-	 */
-	public static SpringJobScheduler getJobConfig(String jobName) {
-		return JOB_MAP.get(jobName);
-	}
-	/**
-	 * 更改jobConfig
-	 * 
-	 * @param jobName
-	 * @param jobConfig
-	 */
-	public static void setJobConfig(String jobName, SpringJobScheduler jobConfig) {
-		JOB_MAP.put(jobName, jobConfig);
-	}
+	
 	/**
 	 * 
 	 */
@@ -92,7 +74,7 @@ public class ElasticJobConfigSupport implements InitializingBean{
 					continue;
 				}
 	 			SpringJobScheduler jobScheduler = jobScheduler(dataTransJob, entity);
-	 			setJobConfig(entity.getName(), jobScheduler);
+	 			DataTransContext.setJobConfig(entity.getName(), jobScheduler);
 	 			jobScheduler.init();
 	 			log.info("初始化定时任务 ：{ "+ entity.toString()+" } ");
 	 		} catch (Exception e) {
