@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.5.10.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath>../../../spring-boot-dependencies/pom.xml</relativePath>
 	</parent>
 	<groupId>com.yanerbo</groupId>
 	<artifactId>data-transfer</artifactId>
@@ -134,4 +134,8 @@
         </plugins>
 	</build>
 
+	<!-- <modules>
+		<module>data-transfer-core</module>
+		<module>data-transfer-console</module>
+	</modules> -->
 </project>
