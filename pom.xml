@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>1.5.10.RELEASE</version>
-		<relativePath>../../../spring-boot-dependencies/pom.xml</relativePath>
+		<relativePath/>
 	</parent>
 	<groupId>com.yanerbo</groupId>
 	<artifactId>data-transfer</artifactId>
