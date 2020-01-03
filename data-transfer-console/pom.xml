@@ -4,6 +4,80 @@
     <groupId>com.yanerbo</groupId>
     <artifactId>data-transfer</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../</relativePath>
   </parent>
   <artifactId>data-transfer-console</artifactId>
+  
+  
+  <dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-config-server</artifactId>
+		</dependency>
+		
+		<dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+        
+		
+		<dependency>
+		    <groupId>org.xerial</groupId>
+		    <artifactId>sqlite-jdbc</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.apache.rocketmq</groupId>
+		    <artifactId>rocketmq-client</artifactId>
+		</dependency>
+		
+		<dependency>
+            <groupId>com.dangdang</groupId>
+            <artifactId>elastic-job-lite-core</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.dangdang</groupId>
+            <artifactId>elastic-job-lite-spring</artifactId>
+        </dependency>
+        
+        <dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+		</dependency>
+		
+	</dependencies>
+	
+  
+  	<build>
+		<finalName>data-transfer-console</finalName>
+		<plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+            </plugin>
+            
+        </plugins>
+	</build>
 </project>
