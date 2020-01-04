@@ -89,13 +89,13 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 		if(PageType.post.name().equals(dataTrans.getPageType())){
 			return pageInfoByPost(dataTrans, shardingItem, shardingTotal);
 		}
-		else if(PageType.post_no_sharding.name().equals(dataTrans.getPageType())){
+		else if(PageType.post_sharding.name().equals(dataTrans.getPageType())){
 			return pageInfoByPostSharding(dataTrans, shardingItem, shardingTotal);
 		}
 		else if(PageType.seq.name().equals(dataTrans.getPageType())){
 			return pageInfoBySeq(dataTrans, shardingItem, shardingTotal);
 		}
-		else if(PageType.seq_no_sharding.name().equals(dataTrans.getPageType())){
+		else if(PageType.seq_sharding.name().equals(dataTrans.getPageType())){
 			return pageInfoBySeq(dataTrans, shardingItem, shardingTotal);
 		}
 		throw new DataTransRuntimeException(ErrorCode.ERR003);
@@ -111,7 +111,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 */
 	private Page pageInfoBySeq(DataTrans dataTrans, int shardingItem, int shardingTotal) {
 		
-		String key = String.format(CURRENTPAGE, dataTrans.getName(), shardingItem);
+		String key = String.format(CURRENTPAGE, dataTrans.getName(), "no-sharding");
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
 		synchronized (this) {
 			try{
@@ -159,7 +159,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				}
 				return page;
 			}catch(Exception e) {
-				log.error("dataTrans: " + dataTrans + " pageInfoByPost fail ", e);
+				log.error("dataTrans: " + dataTrans + " pageInfoByPostSharding fail ", e);
 			}
 		}
 		return null;
@@ -175,7 +175,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 */
 	private Page pageInfoByPost(DataTrans dataTrans, int shardingItem, int shardingTotal) {
 		
-		String key = String.format(STARTPAGE, dataTrans.getName(), shardingItem);
+		String key = String.format(STARTPAGE, dataTrans.getName(), "no-sharding");
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
 		synchronized (this) {
 			try{
@@ -183,6 +183,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
 				int pageStart = atomicInteger.get().postValue();
 				//查询当前页信息
+				
 				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), pageStart ,dataTrans.getPageCount()));
 				//如果开始和结束位置为同一个了，那么说明分页搞完了
 				if(page.getPageStart() == page.getPageEnd()){

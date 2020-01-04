@@ -3,6 +3,7 @@ package com.yanerbo.datatransfer.shared.util;
 import java.util.Arrays;
 
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.PageType;
 
 /**
  * 
@@ -14,42 +15,42 @@ public class SqlUtil {
 	/**
 	 * 获取指定表名总数据量
 	 */
-	private final static String sql_all_count = "select count(1) from /%s";
+	private final static String sql_all_count = "select count(1) from %s";
 	
 	/**
 	 * 获取指定表名总数据量(分片)
 	 */
-	private final static String sql_all_count_sharding = "select count(1) from /%s/ where mod(/%s/,/%s/) = /%s";
+	private final static String sql_all_count_sharding = "select count(1) from %s where mod(%s,%s) = %s";
 	
 	/**
 	 * 删除指定表数据
 	 */
 	
-	private final static String sql_delete = "delete from /%s";
+	private final static String sql_delete = "delete from %s";
 	/**
 	 * 清空指定表数据
 	 */
 	
-	private final static String sql_truncate = "truncate table /%s";
+	private final static String sql_truncate = "truncate table %s";
 	
 	/**
 	 * 标记位置
 	 */
-	private final static String sql_signpagepost = "select min(/%s/) pageStart, max(/%s/) pageEnd, count(1) totalCount from /%s/";
+	private final static String sql_signpagepost = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from %s";
 	/**
 	 * 分页位置
 	 */
-	private final static String sql_pagepost = "select min(/%s/) pageStart, max(/%s/) pageEnd, count(1) totalCount from /%s/ where /%s/ >= /%s/ and rownum<= /%s/";
+	private final static String sql_pagepost = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from %s where %s >= %s and rownum<= %s";
 
 	/**
 	 * 标记位置（分片）
 	 */
-	private final static String sql_signpagepost_sharding = "select min(/%s/) pageStart, max(/%s/) pageEnd, count(1) totalCount from /%s/ where mod(/%s/,/%s/) = /%s";
+	private final static String sql_signpagepost_sharding = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from %s where mod(%s,%s) = %s";
 
 	/**
 	 * 分页位置（分片）
 	 */
-	private final static String sql_pagepost_sharding = "select min(/%s/) pageStart, max(/%s/) pageEnd, count(1) totalCount from /%s/ where mod(/%s/,/%s/) = /%s and /%s/ >= /%s/ and rownum<= /%s/";
+	private final static String sql_pagepost_sharding = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from %s where mod(%s,%s) = %s and %s >= %s and rownum<= %s";
 
 	
 	/**
@@ -122,7 +123,7 @@ public class SqlUtil {
 	 * @return
 	 */
 	public static String getSignPagePostSharding(String tableName, String key, int shardingItem, int shardingTotal) {
-		return String.format(sql_signpagepost_sharding, key, key, tableName, key, shardingItem, shardingTotal);
+		return String.format(sql_signpagepost_sharding, key, key, tableName, key, shardingTotal, shardingItem);
 	}
 	
 	
@@ -143,43 +144,7 @@ public class SqlUtil {
 	 * @return
 	 */
 	public static String getPagePostSharding(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
-		return String.format(sql_pagepost_sharding, key, key, tableName, key, shardingItem, shardingTotal, key, start, pageCount);
-	}
-	
-	
-	
-	
-	public static String getInitPagePost(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
-		return "select min("+ key+ ") pageStart, max(" + key + ") pageEnd, count(1) totalCount from " 
-				+ tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem
-				+ " and "+ key+ " >= " + start + " and rownum<= " + pageCount;
-	}
-	
-	public static String getPageInfo(String tableName, String key, int shardingItem, int shardingTotal) {
-		return "select min("+ key+ ") startPostPage, max(" + key + ") endPostPage, count(1) totalCount from " + tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem;
-	}
-	
-	/**
-	 * 分片
-	 * @param tableName
-	 * @param key
-	 * @param shardingItem
-	 * @param shardingTotal
-	 * @return
-	 */
-	public static String getMaxKey(DataTrans entity,int shardingItem, int shardingTotal, int currentPage) {
-		
-		/**
-		 * 如果表名和字段名称为null，那么就从sql进行构建
-		 */
-		StringBuilder sqlBuilder = new StringBuilder();
-		sqlBuilder.append("select max(").append(entity.getSourceKey()).append(") from ").append(entity.getSourceTable());
-		//添加分片分页信息
-		sqlBuilder.append(" where mod(" + entity.getSourceKey() + "," + shardingTotal + ") = " + shardingItem);
-		sqlBuilder.append(" and ").append(entity.getSourceKey()).append(" >= ").append(currentPage);
-		sqlBuilder.append(" and rownum<= ").append(entity.getPageCount());
-		System.out.println(sqlBuilder.toString());
-		return sqlBuilder.toString();
+		return String.format(sql_pagepost_sharding, key, key, tableName, key, shardingTotal, shardingItem, key, start, pageCount);
 	}
 	
 	private static boolean isNotEmpty(String str) {
@@ -188,8 +153,11 @@ public class SqlUtil {
 		}
 		return true;
 	}
-	
-	public static String builderSelect(DataTrans entity,int shardingItem, int shardingTotal, int start, int end) {
+	/**
+	 * 
+	 * 构建查询语句
+	 */
+	public static String builderSelect(DataTrans entity, int start, int end,int shardingItem, int shardingTotal) {
 		/**
 		 * 如果表名和字段名称为null，那么就从sql进行构建
 		 */
@@ -199,27 +167,31 @@ public class SqlUtil {
 		}else {
 			sqlBuilder.append(entity.getSourceSql());
 		}
-		if(entity.getSourceSql().contains("where")) {
+		sqlBuilder.append(" where ").append(entity.getSourceKey()).append(" >= ").append(start);
+		sqlBuilder.append(" and ").append(entity.getSourceKey()).append(" < ").append(end);
+		if(PageType.post_sharding.name().equals(entity.getPageType()) || PageType.seq_sharding.name().equals(entity.getPageType())) {
 			//添加分片分页信息
 			sqlBuilder.append(" and mod(" + entity.getSourceKey() + "," + shardingTotal + ") = " + shardingItem);
-		}else {
-			//添加分片分页信息
-			sqlBuilder.append(" where mod(" + entity.getSourceKey() + "," + shardingTotal + ") = " + shardingItem);
 		}
-		sqlBuilder.append(" and ").append(entity.getSourceKey()).append(" >= ").append(start);
-		sqlBuilder.append(" and ").append(entity.getSourceKey()).append(" < ").append(end);
-//		sqlBuilder.append(" and rownum<= ").append(entity.getPageCount());
 		System.out.println(sqlBuilder.toString());
 		return sqlBuilder.toString();
 	}
-	
+	/**
+	 * 构建插入语句
+	 * @param entity
+	 * @return
+	 */
 	public static String builderInsert(DataTrans entity) {
 		if(isNotEmpty(entity.getTargetTable()) && isNotEmpty(entity.getTargetColumns())){
 			return builderInsert(entity.getTargetTable(), entity.getTargetColumns());
 		}
 		return entity.getTargetSql();
 	}
-	
+	/**
+	 * 构建插入语句
+	 * @param entity
+	 * @return
+	 */
 	public static String builderInsert(String table, String columns){
 		StringBuilder sqlBuilder = new StringBuilder();
 		sqlBuilder.append("insert  into ").append(table).append(" (").append(columns).append(") values (");

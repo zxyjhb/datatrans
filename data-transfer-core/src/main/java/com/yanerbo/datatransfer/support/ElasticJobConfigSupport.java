@@ -2,7 +2,6 @@ package com.yanerbo.datatransfer.support;
 
 import javax.annotation.Resource;
 
-import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
@@ -13,12 +12,10 @@ import com.dangdang.ddframe.job.config.JobTypeConfiguration;
 import com.dangdang.ddframe.job.config.simple.SimpleJobConfiguration;
 import com.dangdang.ddframe.job.event.JobEventConfiguration;
 import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
-import com.dangdang.ddframe.job.lite.internal.election.LeaderService;
 import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
-import com.yanerbo.datatransfer.shared.domain.DataType;
 import com.yanerbo.datatransfer.shared.domain.RunType;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.job.DataTransJob;
@@ -63,12 +60,6 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 */
 	@Resource
 	private JobEventConfiguration jobEventConfiguration;
-
-	/**
-	 * 清除数据锁
-	 */
-	private static final String CLEARLOCK = "/%s/clearLock";
-	
 	/**
 	 * 
 	 */

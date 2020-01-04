@@ -14,6 +14,7 @@ import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
 import com.yanerbo.datatransfer.shared.domain.DataType;
 import com.yanerbo.datatransfer.shared.domain.Page;
+import com.yanerbo.datatransfer.shared.domain.RunType;
 import com.yanerbo.datatransfer.shared.util.SqlUtil;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.server.dao.IDataTransDao;
@@ -88,8 +89,11 @@ public class DataTransManager implements IDataTransManager{
 	public boolean allTrans(String name, int shardingItem, int shardingTotal) {
 		//获取传输配置信息
 		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(name));
-		
-		//并行去处理
+		//如果runtype为add，说明不用运行
+		if(RunType.add.name().equals(dataTrans.getMode())) {
+			log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",全量已经完毕，不用执行");
+		}
+		//多线程并行去处理
 		for(int i = 1; i<dataTrans.getMaxThread(); i++){
 			//开始进行数据迁移
 			executor.execute(new Runnable() {
