@@ -2,7 +2,7 @@ package com.yanerbo.datatransfer.console.server.dao;
 
 import java.util.List;
 
-import com.yanerbo.datatransfer.console.entity.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
 
 /**
  * 
@@ -16,4 +16,6 @@ public interface IDataTransConfigDao {
 	public List<DataTrans> getDataTransList();
 	
 	public void updateDataTrans(DataTrans dataTrans); 
+	
+	public void init(String name);
 }

@@ -1,7 +1,8 @@
-package com.yanerbo.datatransfer.support.util;
+package com.yanerbo.datatransfer.shared.util;
 
 import java.util.Arrays;
-import com.yanerbo.datatransfer.entity.DataTrans;
+
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
 
 /**
  * 
@@ -16,14 +17,40 @@ public class SqlUtil {
 	private final static String sql_all_count = "select count(1) from /%s";
 	
 	/**
+	 * 获取指定表名总数据量(分片)
+	 */
+	private final static String sql_all_count_sharding = "select count(1) from /%s/ where mod(/%s/,/%s/) = /%s";
+	
+	/**
 	 * 删除指定表数据
 	 */
-	private final static String sql_delete = "delete from /%s";
 	
+	private final static String sql_delete = "delete from /%s";
 	/**
 	 * 清空指定表数据
 	 */
+	
 	private final static String sql_truncate = "truncate table /%s";
+	
+	/**
+	 * 标记位置
+	 */
+	private final static String sql_signpagepost = "select min(/%s/) pageStart, max(/%s/) pageEnd, count(1) totalCount from /%s/";
+	/**
+	 * 分页位置
+	 */
+	private final static String sql_pagepost = "select min(/%s/) pageStart, max(/%s/) pageEnd, count(1) totalCount from /%s/ where /%s/ >= /%s/ and rownum<= /%s/";
+
+	/**
+	 * 标记位置（分片）
+	 */
+	private final static String sql_signpagepost_sharding = "select min(/%s/) pageStart, max(/%s/) pageEnd, count(1) totalCount from /%s/ where mod(/%s/,/%s/) = /%s";
+
+	/**
+	 * 分页位置（分片）
+	 */
+	private final static String sql_pagepost_sharding = "select min(/%s/) pageStart, max(/%s/) pageEnd, count(1) totalCount from /%s/ where mod(/%s/,/%s/) = /%s and /%s/ >= /%s/ and rownum<= /%s/";
+
 	
 	/**
 	 * 全表
@@ -32,6 +59,18 @@ public class SqlUtil {
 	 */
 	public static String allCount(String tableName) {
 		return String.format(sql_all_count, tableName);
+	}
+	
+	/**
+	 * 分片
+	 * @param tableName
+	 * @param key
+	 * @param shardingItem
+	 * @param shardingTotal
+	 * @return
+	 */
+	public static String allCountSharding(String tableName, String key, int shardingItem, int shardingTotal) {
+		return String.format(sql_all_count_sharding, tableName, key, shardingItem, shardingTotal);
 	}
 	
 	/**
@@ -51,25 +90,63 @@ public class SqlUtil {
 	public static String truncate(String tableName) {
 		return String.format(sql_truncate, tableName);
 	}
+	
 	/**
-	 * 分片
+	 * 分页
+	 * @param tableName
+	 * @param key
+	 * @param start
+	 * @param pageCount
+	 * @return
+	 */
+	public static String getSignPagePost(String tableName, String key) {
+		return String.format(sql_signpagepost, key, key, tableName);
+	}
+	/**
+	 * 分页
+	 * @param tableName
+	 * @param key
+	 * @param start
+	 * @param pageCount
+	 * @return
+	 */
+	public static String getPagePost(String tableName, String key, int start, int pageCount) {
+		return String.format(sql_pagepost, key, key, tableName, key, start, pageCount);
+	}
+	/**
+	 * 
 	 * @param tableName
 	 * @param key
 	 * @param shardingItem
 	 * @param shardingTotal
 	 * @return
 	 */
-	public static String getAllCount(String tableName, String key, int shardingItem, int shardingTotal) {
-		return "select count(1) from " + tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem;
+	public static String getSignPagePostSharding(String tableName, String key, int shardingItem, int shardingTotal) {
+		return String.format(sql_signpagepost_sharding, key, key, tableName, key, shardingItem, shardingTotal);
 	}
 	
-	public static String getPagePost(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
-		StringBuilder sqlBuilder = new StringBuilder();
-		
+	
+	
+	public static String getStartPagePost(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
 		return "select min("+ key+ ") pageStart, max(" + key + ") pageEnd, count(1) totalCount from " 
 				+ tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem
 				+ " and "+ key+ " >= " + start + " and rownum<= " + pageCount;
 	}
+	/**
+	 * 分页（分片）
+	 * @param tableName
+	 * @param key
+	 * @param shardingItem
+	 * @param shardingTotal
+	 * @param start
+	 * @param pageCount
+	 * @return
+	 */
+	public static String getPagePostSharding(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
+		return String.format(sql_pagepost_sharding, key, key, tableName, key, shardingItem, shardingTotal, key, start, pageCount);
+	}
+	
+	
 	
 	
 	public static String getInitPagePost(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
@@ -105,25 +182,8 @@ public class SqlUtil {
 		return sqlBuilder.toString();
 	}
 	
-	
-	public static String getOracleAllTable() {
-		return "select table_name from user_tables";
-	}
-	
-	public static String getMysqlAllTable() {
-		return null;
-	}
-	
-	public static String getMysqlColumnsByTable(String table) {
-		return null;
-	}
-	
-	public static String getOralceColumnsByTable(String table) {
-		return null;
-	}
-	
-	private static boolean isNotEmpty(String sql) {
-		if(sql == null || sql.isEmpty()) {
+	private static boolean isNotEmpty(String str) {
+		if(str == null || str.isEmpty()) {
 			return false;
 		}
 		return true;

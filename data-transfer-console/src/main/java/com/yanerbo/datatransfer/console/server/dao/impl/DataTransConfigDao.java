@@ -9,8 +9,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import com.yanerbo.datatransfer.console.entity.DataTrans;
 import com.yanerbo.datatransfer.console.server.dao.IDataTransConfigDao;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
+import com.yanerbo.datatransfer.shared.util.SqlUtil;
 
 /**
  * 
@@ -38,7 +39,8 @@ public class DataTransConfigDao implements IDataTransConfigDao{
 	
 	@Override
 	public DataTrans getDataTrans(String name) {
-		return jdbcTemplate.queryForObject(config_select_by_name, new RowMapper<DataTrans>(){
+	
+		List<DataTrans> dataTransList = jdbcTemplate.query(config_select_by_name, new RowMapper<DataTrans>(){
 			@Override
 			public DataTrans mapRow(ResultSet rs, int rowNum) throws SQLException {
 				DataTrans dataTran = new DataTrans(); 
@@ -61,6 +63,10 @@ public class DataTransConfigDao implements IDataTransConfigDao{
 				return dataTran;
 			}
 		}, name);
+		if(dataTransList!=null && dataTransList.size()>0) {
+			return dataTransList.get(0);
+		}
+		return null;
 	}
 
 	@Override
@@ -118,6 +124,17 @@ public class DataTransConfigDao implements IDataTransConfigDao{
 				return dataTran;
 			}
 		});
+	}
+
+	@Override
+	public void init(String name) {
+		DataTrans dataTrans = getDataTrans(name);
+		try {
+			jdbcTemplate.execute("truncate table " + SqlUtil.truncate(dataTrans.getTargetTable()));
+		}catch(Exception e) {
+			jdbcTemplate.execute("delete from " + SqlUtil.delete(dataTrans.getTargetTable()));
+		}
+		
 	}
 
 }

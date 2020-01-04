@@ -1,4 +1,4 @@
-package com.yanerbo.datatransfer;
+package com.yanerbo.datatransfer.console;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -17,7 +17,7 @@ import com.alibaba.druid.support.http.StatViewServlet;
  *
  */
 @SpringBootApplication(exclude= {DataSourceAutoConfiguration.class})
-public class DataTransferApplication {
+public class Application {
 	
 	/***
 	 * springboot的全局配置文件路径变量名
@@ -54,7 +54,7 @@ public class DataTransferApplication {
 		if (StringUtils.isEmpty(configPath)) {
 			throw new RuntimeException("you must set environment " + GLOBAL_CONFIG_PATH + " before run!");
 		}
-		new SpringApplicationBuilder(DataTransferApplication.class)
+		new SpringApplicationBuilder(Application.class)
 				.properties(SPRING_CONFIG_PATH + "=" + configPath + SPRING_CONFIG_FILES).run(args);
 	}
 

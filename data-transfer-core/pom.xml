@@ -18,14 +18,21 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+		</dependency>
+		
+		<dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+        </dependency>
+		
+		<dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
         </dependency>
         
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-starter</artifactId>
-        </dependency>
+        
         
 		<dependency>
 			<groupId>com.oracle.ojdbc</groupId>
@@ -36,11 +43,6 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-		</dependency>
-		
-		<dependency>
-		    <groupId>org.xerial</groupId>
-		    <artifactId>sqlite-jdbc</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -57,13 +59,19 @@
             <groupId>com.dangdang</groupId>
             <artifactId>elastic-job-lite-spring</artifactId>
         </dependency>
+        
+        <dependency>
+        	<groupId>com.yanerbo</groupId>
+    		<artifactId>data-transfer</artifactId>
+    		<version>0.0.1-SNAPSHOT</version>
+        </dependency>
 		
 		
 	</dependencies>
 	
 	
 	<build>
-		<finalName>data-transfer-core</finalName>
+		<finalName>data-transfer</finalName>
 		<plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

@@ -1,8 +1,7 @@
 package com.yanerbo.datatransfer.console.server.manager;
 
 import java.util.List;
-
-import com.yanerbo.datatransfer.console.entity.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
 
 /**
  * 
@@ -15,6 +14,12 @@ public interface IDataTransConfigManager {
 	
 	public List<DataTrans> getDataTransList();
 	
-	public void updateDataTrans(DataTrans dataTrans); 
+	public void updateDataTrans(DataTrans dataTrans);
+
+	public void restart(String name); 
+	
+	public void shutdown(String name); 
+	
+	public void startup(String name);
 
 }

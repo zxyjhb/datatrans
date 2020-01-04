@@ -1,4 +1,4 @@
-package com.yanerbo.datatransfer.entity;
+package com.yanerbo.datatransfer.shared.domain;
 
 /**
  * 

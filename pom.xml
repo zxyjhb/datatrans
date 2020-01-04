@@ -42,13 +42,13 @@
 				<version>${springboot.version}</version>
 			</dependency>
 			
-			<dependency>
+			<!-- <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
+            </dependency> -->
 			
 			<dependency>
 	            <groupId>com.alibaba</groupId>
@@ -135,5 +135,7 @@
 	<modules>
 		<module>data-transfer-core</module>
 		<module>data-transfer-console</module>
+		<module>data-transfer-api</module>
+		<module>data-transfer-shared</module>
 	</modules>
 </project>
