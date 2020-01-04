@@ -10,11 +10,11 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import com.yanerbo.datatransfer.entity.DataType;
-import com.yanerbo.datatransfer.entity.Page;
+import com.yanerbo.datatransfer.shared.domain.DataType;
+import com.yanerbo.datatransfer.shared.domain.Page;
+import com.yanerbo.datatransfer.shared.util.SqlUtil;
 import com.yanerbo.datatransfer.server.dao.IDataTransDao;
 import com.yanerbo.datatransfer.support.util.DataSourceUtil;
-import com.yanerbo.datatransfer.support.util.SqlUtil;
 
 /**
  * 

@@ -11,14 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import com.yanerbo.datatransfer.config.DataTransConfig;
-import com.yanerbo.datatransfer.entity.DataTrans;
-import com.yanerbo.datatransfer.entity.DataType;
-import com.yanerbo.datatransfer.entity.Page;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.DataType;
+import com.yanerbo.datatransfer.shared.domain.Page;
+import com.yanerbo.datatransfer.shared.util.SqlUtil;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.server.dao.IDataTransDao;
 import com.yanerbo.datatransfer.server.manager.IDataTransManager;
 import com.yanerbo.datatransfer.support.impl.IDistributedPage;
-import com.yanerbo.datatransfer.support.util.SqlUtil;
 
 /**
  * 
@@ -88,6 +88,7 @@ public class DataTransManager implements IDataTransManager{
 	public boolean allTrans(String name, int shardingItem, int shardingTotal) {
 		//获取传输配置信息
 		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(name));
+		
 		//并行去处理
 		for(int i = 1; i<dataTrans.getMaxThread(); i++){
 			//开始进行数据迁移

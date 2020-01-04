@@ -6,7 +6,7 @@ import org.apache.rocketmq.common.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
-import com.yanerbo.datatransfer.entity.ErrorCode;
+import com.yanerbo.datatransfer.shared.domain.ErrorCode;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 
 /**

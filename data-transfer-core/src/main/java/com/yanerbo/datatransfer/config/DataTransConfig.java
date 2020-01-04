@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
-import com.yanerbo.datatransfer.entity.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.server.dao.IDataTransConfigDao;
 /**
@@ -24,7 +24,7 @@ public class DataTransConfig implements InitializingBean{
 	/**
 	 * zk path
 	 */
-	private static final String CONFIG_PATH = "/%s/dtconfig";
+	private static final String CONFIG_PATH = "/%s/datatrans-config";
 	
 	/**
 	 * 数据列表（配置文件加载）

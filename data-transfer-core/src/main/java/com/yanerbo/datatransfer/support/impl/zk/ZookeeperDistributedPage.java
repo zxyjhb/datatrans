@@ -12,15 +12,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.config.DataTransConfig;
-import com.yanerbo.datatransfer.entity.DataTrans;
-import com.yanerbo.datatransfer.entity.Page;
-import com.yanerbo.datatransfer.entity.PageType;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.Page;
+import com.yanerbo.datatransfer.shared.domain.PageType;
+import com.yanerbo.datatransfer.shared.util.SqlUtil;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
-import com.yanerbo.datatransfer.entity.DataType;
-import com.yanerbo.datatransfer.entity.ErrorCode;
+import com.yanerbo.datatransfer.shared.domain.DataType;
+import com.yanerbo.datatransfer.shared.domain.ErrorCode;
 import com.yanerbo.datatransfer.server.dao.impl.DataTransDao;
 import com.yanerbo.datatransfer.support.impl.IDistributedPage;
-import com.yanerbo.datatransfer.support.util.SqlUtil;
 
 /**
  * 
@@ -89,7 +89,13 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 		if(PageType.post.name().equals(dataTrans.getPageType())){
 			return pageInfoByPost(dataTrans, shardingItem, shardingTotal);
 		}
+		else if(PageType.post_no_sharding.name().equals(dataTrans.getPageType())){
+			return pageInfoByPostSharding(dataTrans, shardingItem, shardingTotal);
+		}
 		else if(PageType.seq.name().equals(dataTrans.getPageType())){
+			return pageInfoBySeq(dataTrans, shardingItem, shardingTotal);
+		}
+		else if(PageType.seq_no_sharding.name().equals(dataTrans.getPageType())){
 			return pageInfoBySeq(dataTrans, shardingItem, shardingTotal);
 		}
 		throw new DataTransRuntimeException(ErrorCode.ERR003);
@@ -113,7 +119,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
 				int pageStart = atomicInteger.get().postValue();
 				//查询当前页信息
-				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
+				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePostSharding(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
 				//当前结束值，作为下一个开始值
 				atomicInteger.forceSet(page.getPageEnd());
 				return page;
@@ -124,6 +130,41 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 		}
 		return null;
 	}
+	
+	/**
+	 * 按起始位置（每次去获取当前执行的位置）
+	 * @param shardingItem
+	 * @param shardingTotal
+	 * @param key
+	 * @param dataTrans
+	 * @return
+	 */
+	private Page pageInfoByPostSharding(DataTrans dataTrans, int shardingItem, int shardingTotal) {
+		
+		String key = String.format(STARTPAGE, dataTrans.getName(), shardingItem);
+		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
+		synchronized (this) {
+			try{
+				//获取当前页
+				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
+				int pageStart = atomicInteger.get().postValue();
+				//查询当前页信息
+				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePostSharding(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
+				//如果开始和结束位置为同一个了，那么说明分页搞完了
+				if(page.getPageStart() == page.getPageEnd()){
+//					atomicInteger.forceSet(DEFAULT);
+				}else{
+					//当前结束值，作为下一个开始值
+					atomicInteger.compareAndSet(pageStart, page.getPageEnd());
+				}
+				return page;
+			}catch(Exception e) {
+				log.error("dataTrans: " + dataTrans + " pageInfoByPost fail ", e);
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * 按起始位置（每次去获取当前执行的位置）
 	 * @param shardingItem
@@ -142,7 +183,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
 				int pageStart = atomicInteger.get().postValue();
 				//查询当前页信息
-				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
+				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), pageStart ,dataTrans.getPageCount()));
 				//如果开始和结束位置为同一个了，那么说明分页搞完了
 				if(page.getPageStart() == page.getPageEnd()){
 //					atomicInteger.forceSet(DEFAULT);

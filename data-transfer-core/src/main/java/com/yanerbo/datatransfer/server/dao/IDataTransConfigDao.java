@@ -2,7 +2,7 @@ package com.yanerbo.datatransfer.server.dao;
 
 import java.util.List;
 
-import com.yanerbo.datatransfer.entity.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
 
 /**
  * 

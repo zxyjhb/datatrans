@@ -8,7 +8,7 @@ package com.yanerbo.datatransfer.shared.domain;
 public enum RunType {
 
 	all,  //全量
-	init, //
+	init, //正在初始化
 	add,
 	none;
 }

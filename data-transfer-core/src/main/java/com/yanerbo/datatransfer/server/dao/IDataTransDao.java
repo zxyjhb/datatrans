@@ -3,8 +3,8 @@ package com.yanerbo.datatransfer.server.dao;
 import java.util.List;
 import java.util.Map;
 
-import com.yanerbo.datatransfer.entity.DataType;
-import com.yanerbo.datatransfer.entity.Page;
+import com.yanerbo.datatransfer.shared.domain.DataType;
+import com.yanerbo.datatransfer.shared.domain.Page;
 
 
 /**

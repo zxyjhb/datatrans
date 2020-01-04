@@ -11,7 +11,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import com.alibaba.druid.filter.config.ConfigTools;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.util.DruidPasswordCallback;
-import com.yanerbo.datatransfer.entity.ErrorCode;
+import com.yanerbo.datatransfer.shared.domain.ErrorCode;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 
 /**

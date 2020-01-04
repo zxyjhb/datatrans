@@ -3,8 +3,8 @@ package com.yanerbo.datatransfer.support.util;
 import java.util.HashMap;
 import java.util.Map;
 import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
-import com.yanerbo.datatransfer.entity.DataTrans;
-import com.yanerbo.datatransfer.entity.Page;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.Page;
 
 /**
  * 上下文信息

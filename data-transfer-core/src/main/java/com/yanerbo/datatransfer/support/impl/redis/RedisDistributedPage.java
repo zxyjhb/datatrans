@@ -1,6 +1,6 @@
 package com.yanerbo.datatransfer.support.impl.redis;
 
-import com.yanerbo.datatransfer.entity.Page;
+import com.yanerbo.datatransfer.shared.domain.Page;
 import com.yanerbo.datatransfer.support.impl.IDistributedPage;
 
 /**

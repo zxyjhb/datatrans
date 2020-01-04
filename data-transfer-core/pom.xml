@@ -62,7 +62,7 @@
         
         <dependency>
         	<groupId>com.yanerbo</groupId>
-    		<artifactId>data-transfer</artifactId>
+    		<artifactId>data-transfer-shared</artifactId>
     		<version>0.0.1-SNAPSHOT</version>
         </dependency>
 		

@@ -1,6 +1,6 @@
 package com.yanerbo.datatransfer.support.impl;
 
-import com.yanerbo.datatransfer.entity.Page;
+import com.yanerbo.datatransfer.shared.domain.Page;
 
 public interface IDistributedPage {
 	/**

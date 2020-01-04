@@ -1,6 +1,6 @@
 package com.yanerbo.datatransfer.exception;
 
-import com.yanerbo.datatransfer.entity.ErrorCode;
+import com.yanerbo.datatransfer.shared.domain.ErrorCode;
 
 /**
  * 运行异常类

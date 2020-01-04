@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import com.yanerbo.datatransfer.entity.DataTrans;
-import com.yanerbo.datatransfer.entity.DataType;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.DataType;
 import com.yanerbo.datatransfer.server.dao.IDataTransConfigDao;
 import com.yanerbo.datatransfer.support.util.DataSourceUtil;
 

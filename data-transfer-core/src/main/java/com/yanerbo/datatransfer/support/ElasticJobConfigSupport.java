@@ -17,14 +17,13 @@ import com.dangdang.ddframe.job.lite.internal.election.LeaderService;
 import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.config.DataTransConfig;
-import com.yanerbo.datatransfer.entity.DataTrans;
-import com.yanerbo.datatransfer.entity.DataType;
-import com.yanerbo.datatransfer.entity.RunType;
+import com.yanerbo.datatransfer.shared.domain.DataTrans;
+import com.yanerbo.datatransfer.shared.domain.DataType;
+import com.yanerbo.datatransfer.shared.domain.RunType;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.job.DataTransJob;
 import com.yanerbo.datatransfer.server.dao.impl.DataTransDao;
 import com.yanerbo.datatransfer.support.util.DataTransContext;
-import com.yanerbo.datatransfer.support.util.SqlUtil;
 
 
 /**
@@ -99,33 +98,32 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 * @param dataTrans
 	 * @throws Exception
 	 */
-	public void clearTargetData(DataTrans dataTrans) throws Exception{
-		
-		if(RunType.init.name().equals(dataTrans.getMode())){
-			String lockKey = String.format(CLEARLOCK, dataTrans.getName());
-			//主节点
-			LeaderService leaderService = new LeaderService(zookeeperRegistryCenter, dataTrans.getName());
-			//使用zk排他锁（这里主要是在删除的时候 其他节点也阻塞一下）
-			InterProcessSemaphoreMutex lock = new InterProcessSemaphoreMutex(zookeeperRegistryCenter.getClient(), lockKey);
-			try{
-				//调用该方法后，会一直堵塞，直到抢夺到锁资源，或者zookeeper连接中断后，上抛异常
-				lock.acquire();
-				//主节点去删除数据（不需要每个节点都去操作）
-				if(leaderService.isLeader()){
-					//清空目标表数据
-					log.info("【clear data】");
-					dataTransDao.delete(DataType.target, SqlUtil.delete(dataTrans.getTargetTable()));
-					//这里修改模式为all，后面的就不用初始化了
-					dataTrans.setMode(RunType.all.name());
-					dataTransConfig.setDataTransConfig(dataTrans);
-				}
-			}finally{
-				//释放锁
-				lock.release();
-			}
-		}
-	}
-		
+//	public void clearTargetData(DataTrans dataTrans) throws Exception{
+//		
+//		if(RunType.init.name().equals(dataTrans.getMode())){
+//			String lockKey = String.format(CLEARLOCK, dataTrans.getName());
+//			//主节点
+//			LeaderService leaderService = new LeaderService(zookeeperRegistryCenter, dataTrans.getName());
+//			//使用zk排他锁（这里主要是在删除的时候 其他节点也阻塞一下）
+//			InterProcessSemaphoreMutex lock = new InterProcessSemaphoreMutex(zookeeperRegistryCenter.getClient(), lockKey);
+//			try{
+//				//调用该方法后，会一直堵塞，直到抢夺到锁资源，或者zookeeper连接中断后，上抛异常
+//				lock.acquire();
+//				//主节点去删除数据（不需要每个节点都去操作）
+//				if(leaderService.isLeader()){
+//					//清空目标表数据
+//					log.info("【clear data】");
+//					dataTransDao.delete(DataType.target, SqlUtil.delete(dataTrans.getTargetTable()));
+//					//这里修改模式为all，后面的就不用初始化了
+//					dataTrans.setMode(RunType.all.name());
+//					dataTransConfig.setDataTransConfig(dataTrans);
+//				}
+//			}finally{
+//				//释放锁
+//				lock.release();
+//			}
+//		}
+//	}
 	/**
 	 * 注册SpringJobScheduler
 	 * 
