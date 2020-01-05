@@ -75,7 +75,6 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 			SpringJobScheduler jobScheduler = jobScheduler(dataTransJob, entity);
 	 			DataTransContext.setJobConfig(entity.getName(), jobScheduler);
 	 			jobScheduler.init();
-//	 			clearTargetData(entity);
 	 			log.info("初始化定时任务 ：{ "+ entity.toString()+" } ");
 	 		} catch (Exception e) {
 	 			log.error("注册Job出错：{ " + entity.toString() + "} ", e);

@@ -1,7 +1,5 @@
 package com.yanerbo.datatransfer.shared.domain;
 
-import java.lang.reflect.Field;
-
 /**
  * 
  * @author jihaibo
@@ -177,31 +175,55 @@ public class DataTrans {
 	}
 	/**
 	 * 
-	 * @return
+	 * @author jihaibo
+	 *
 	 */
-	public static String selectConfigsSql(){
+	class RuntimeObject {
+		/**
+		 * 运行开始时间
+		 */
+		private long startTime;
+		/**
+		 * 运行最小位置
+		 */
+		private int minPos;
+		/**
+		 * 运行最大位置
+		 */
+		private int maxPos;
+		/**
+		 * 运行状态
+		 */
+		private String status;
+		public long getStartTime() {
+			return startTime;
+		}
+		public void setStartTime(long startTime) {
+			this.startTime = startTime;
+		}
+		public int getMinPos() {
+			return minPos;
+		}
+		public void setMinPos(int minPos) {
+			this.minPos = minPos;
+		}
+		public int getMaxPos() {
+			return maxPos;
+		}
+		public void setMaxPos(int maxPos) {
+			this.maxPos = maxPos;
+		}
+		public String getStatus() {
+			return status;
+		}
+		public void setStatus(String status) {
+			this.status = status;
+		}
 		
-		StringBuilder sb = new StringBuilder("select ");
-		for(Field field : DataTrans.class.getDeclaredFields()){
-			sb.append(field.getName()).append(", ");
-		}
-		sb.deleteCharAt(sb.lastIndexOf(",")).append(" from ").append("t_datatrans_config");
-		return sb.toString();
+		
+		
 	}
-	/**
-	 * 
-	 * @return
-	 */
-	public static String updateConfigsSql(){
-		StringBuilder sb = new StringBuilder("update t_datatrans_config set ");
-		for(Field field : DataTrans.class.getDeclaredFields()){
-			sb.append(field.getName()).append(" = ?, ");
-			System.out.println("ps.setString(1, dataTrans.get" + field.getName() + "();");
-			
-		}
-		sb.deleteCharAt(sb.lastIndexOf(",")).append(" where name=? ");
-		return sb.toString();
-	}
+	
 	/**
 	 * 
 	 */
@@ -216,10 +238,5 @@ public class DataTrans {
 				+ shardingItemParameters + "]";
 	}
 	
-	
-	public static void main(String[] args){
-		System.out.println(DataTrans.selectConfigsSql());
-		System.out.println(DataTrans.updateConfigsSql());
-	}
 
 }

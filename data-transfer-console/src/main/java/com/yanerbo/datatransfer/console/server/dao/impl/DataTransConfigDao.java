@@ -127,13 +127,17 @@ public class DataTransConfigDao implements IDataTransConfigDao{
 	}
 
 	@Override
-	public void init(String name) {
-		DataTrans dataTrans = getDataTrans(name);
+	public void truncate(String table) {
 		try {
-			jdbcTemplate.execute("truncate table " + SqlUtil.truncate(dataTrans.getTargetTable()));
+			jdbcTemplate.execute("truncate table " + SqlUtil.truncate(table));
 		}catch(Exception e) {
-			jdbcTemplate.execute("delete from " + SqlUtil.delete(dataTrans.getTargetTable()));
+			jdbcTemplate.execute("delete from " + SqlUtil.delete(table));
 		}
+	}
+
+	@Override
+	public void insertDataTrans(DataTrans dataTrans) {
+		// TODO Auto-generated method stub
 		
 	}
 

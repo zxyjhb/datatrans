@@ -26,6 +26,7 @@
 		<rocketmq-springboot.version>2.0.3</rocketmq-springboot.version>
 		<mybatis-springboot.version>1.3.2</mybatis-springboot.version>
 		<spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
+		<spring-swagger2.version>2.9.2</spring-swagger2.version>
 	</properties>
 	
 	
@@ -127,6 +128,18 @@
 				<artifactId>spring-boot-configuration-processor</artifactId>
 				<version>${springboot.version}</version>
 				<optional>true</optional>
+			</dependency>
+			
+			
+			<dependency>
+			    <groupId>io.springfox</groupId>
+			    <artifactId>springfox-swagger2</artifactId>
+			    <version>${spring-swagger2.version}</version>
+			</dependency>
+			<dependency>
+			    <groupId>io.springfox</groupId>
+			    <artifactId>springfox-swagger-ui</artifactId>
+			    <version>${spring-swagger2.version}</version>
 			</dependency>
 		</dependencies>
 	

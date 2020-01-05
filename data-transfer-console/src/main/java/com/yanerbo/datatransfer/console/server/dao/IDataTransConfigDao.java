@@ -15,7 +15,9 @@ public interface IDataTransConfigDao {
 	
 	public List<DataTrans> getDataTransList();
 	
+	public void insertDataTrans(DataTrans dataTrans); 
+	
 	public void updateDataTrans(DataTrans dataTrans); 
 	
-	public void init(String name);
+	public void truncate(String table);
 }

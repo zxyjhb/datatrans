@@ -96,7 +96,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 			return pageInfoBySeq(dataTrans, shardingItem, shardingTotal);
 		}
 		else if(PageType.seq_sharding.name().equals(dataTrans.getPageType())){
-			return pageInfoBySeq(dataTrans, shardingItem, shardingTotal);
+			return pageInfoBySeqSharding(dataTrans, shardingItem, shardingTotal);
 		}
 		throw new DataTransRuntimeException(ErrorCode.ERR003);
 	}
@@ -126,6 +126,70 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				
 			}catch(Exception e) {
 				log.error("dataTrans: " + dataTrans + " pageInfoBySeq fail ", e);
+			}
+		}
+		return null;
+	}
+	/**
+	 * 按顺序分页
+	 * @param shardingItem
+	 * @param shardingTotal
+	 * @param key
+	 * @param dataTrans
+	 * @return
+	 */
+	private Page pageInfoBySeqSharding(DataTrans dataTrans, int shardingItem, int shardingTotal) {
+		
+		String key = String.format(CURRENTPAGE, dataTrans.getName(), "no-sharding");
+		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
+		synchronized (this) {
+			try{
+				//获取当前页
+				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
+				int pageStart = atomicInteger.get().postValue();
+				//查询当前页信息
+				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePostSharding(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
+				//当前结束值，作为下一个开始值
+				atomicInteger.forceSet(page.getPageEnd());
+				return page;
+				
+			}catch(Exception e) {
+				log.error("dataTrans: " + dataTrans + " pageInfoBySeq fail ", e);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 按起始位置（每次去获取当前执行的位置）
+	 * @param shardingItem
+	 * @param shardingTotal
+	 * @param key
+	 * @param dataTrans
+	 * @return
+	 */
+	private Page pageInfoByPost(DataTrans dataTrans, int shardingItem, int shardingTotal) {
+		
+		String key = String.format(STARTPAGE, dataTrans.getName(), "no-sharding");
+		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
+		synchronized (this) {
+			try{
+				//获取当前页
+				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
+				int pageStart = atomicInteger.get().postValue();
+				//查询当前页信息
+				
+				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), pageStart ,dataTrans.getPageCount()));
+				//如果开始和结束位置为同一个了，那么说明分页搞完了
+				if(page.getPageStart() == page.getPageEnd()){
+//					atomicInteger.forceSet(DEFAULT);
+				}else{
+					//当前结束值，作为下一个开始值
+					atomicInteger.compareAndSet(pageStart, page.getPageEnd());
+				}
+				return page;
+			}catch(Exception e) {
+				log.error("dataTrans: " + dataTrans + " pageInfoByPost fail ", e);
 			}
 		}
 		return null;
@@ -160,41 +224,6 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				return page;
 			}catch(Exception e) {
 				log.error("dataTrans: " + dataTrans + " pageInfoByPostSharding fail ", e);
-			}
-		}
-		return null;
-	}
-	
-	/**
-	 * 按起始位置（每次去获取当前执行的位置）
-	 * @param shardingItem
-	 * @param shardingTotal
-	 * @param key
-	 * @param dataTrans
-	 * @return
-	 */
-	private Page pageInfoByPost(DataTrans dataTrans, int shardingItem, int shardingTotal) {
-		
-		String key = String.format(STARTPAGE, dataTrans.getName(), "no-sharding");
-		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
-		synchronized (this) {
-			try{
-				//获取当前页
-				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
-				int pageStart = atomicInteger.get().postValue();
-				//查询当前页信息
-				
-				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), pageStart ,dataTrans.getPageCount()));
-				//如果开始和结束位置为同一个了，那么说明分页搞完了
-				if(page.getPageStart() == page.getPageEnd()){
-//					atomicInteger.forceSet(DEFAULT);
-				}else{
-					//当前结束值，作为下一个开始值
-					atomicInteger.compareAndSet(pageStart, page.getPageEnd());
-				}
-				return page;
-			}catch(Exception e) {
-				log.error("dataTrans: " + dataTrans + " pageInfoByPost fail ", e);
 			}
 		}
 		return null;
