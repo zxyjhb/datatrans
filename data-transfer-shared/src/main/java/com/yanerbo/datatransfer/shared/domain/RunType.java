@@ -9,6 +9,7 @@ public enum RunType {
 
 	all,  //全量
 	init, //正在初始化
-	add,
-	none;
+	hook, //挂起
+	add,  //增量
+	none; //无
 }

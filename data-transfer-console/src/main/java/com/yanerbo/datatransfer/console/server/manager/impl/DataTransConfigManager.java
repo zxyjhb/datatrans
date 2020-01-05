@@ -77,10 +77,16 @@ public class DataTransConfigManager implements IDataTransConfigManager, Constant
 		if(dataTrans == null) {
 			return;
 		}
+		//设置为none模式
+		dataTrans.setMode(RunType.none.name());
+		//更新数据
+		updateDataTrans(dataTrans);
 		//清空表数据
 		dataTransConfigDao.truncate(dataTrans.getTargetTable());
-		//清空zk信息
-		//todo
+		//清空zk分页信息
+		for (String key : regCenter.getChildrenKeys(PAGE_ROOT)) {
+			regCenter.remove(String.format(PAGE_PATH, key));
+		}
 		//设置为全量模式
 		dataTrans.setMode(RunType.all.name());
 		//获取初始分页信息
@@ -99,9 +105,7 @@ public class DataTransConfigManager implements IDataTransConfigManager, Constant
 		if(dataTrans == null) {
 			return;
 		}
-		//清空zk信息
-		//todo
-		//设置为全量模式
+		//设置none模式
 		dataTrans.setMode(RunType.none.name());
 		//更新数据
 		updateDataTrans(dataTrans);
@@ -121,8 +125,10 @@ public class DataTransConfigManager implements IDataTransConfigManager, Constant
 		}
 		//清空表数据
 		dataTransConfigDao.truncate(dataTrans.getTargetTable());
-		//清空zk信息
-		//todo
+		//清空zk分页信息
+		for (String key : regCenter.getChildrenKeys(PAGE_ROOT)) {
+			regCenter.remove(String.format(PAGE_PATH, key));
+		}
 		//设置为全量模式
 		dataTrans.setMode(RunType.all.name());
 		//更新数据
@@ -134,11 +140,15 @@ public class DataTransConfigManager implements IDataTransConfigManager, Constant
 	 */
 	@Override
 	public void suspend(String name) {
-		// TODO Auto-generated method stub
-		
+		//获取配置信息
+		DataTrans dataTrans = getDataTrans(name);
+		//没有找到配置信息
+		if(dataTrans == null) {
+			return;
+		}
+		//设置为全量模式
+		dataTrans.setMode(RunType.hook.name());
+		//更新数据
+		updateDataTrans(dataTrans);
 	}
-
-	
-
-
 }
