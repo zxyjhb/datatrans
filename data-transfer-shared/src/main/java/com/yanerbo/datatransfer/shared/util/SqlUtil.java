@@ -1,12 +1,11 @@
 package com.yanerbo.datatransfer.shared.util;
 
-import java.util.Arrays;
-
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
 import com.yanerbo.datatransfer.shared.domain.PageType;
 
 /**
  * 
+ * sql构建类
  * @author jihaibo
  *
  */
@@ -93,7 +92,7 @@ public class SqlUtil {
 	}
 	
 	/**
-	 * 分页
+	 * 获取初始分页信息
 	 * @param tableName
 	 * @param key
 	 * @param start
@@ -104,7 +103,7 @@ public class SqlUtil {
 		return String.format(sql_signpagepost, key, key, tableName);
 	}
 	/**
-	 * 分页
+	 * 获取分页信息
 	 * @param tableName
 	 * @param key
 	 * @param start
@@ -125,14 +124,7 @@ public class SqlUtil {
 	public static String getSignPagePostSharding(String tableName, String key, int shardingItem, int shardingTotal) {
 		return String.format(sql_signpagepost_sharding, key, key, tableName, key, shardingTotal, shardingItem);
 	}
-	
-	
-	
-	public static String getStartPagePost(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
-		return "select min("+ key+ ") pageStart, max(" + key + ") pageEnd, count(1) totalCount from " 
-				+ tableName + " where mod(" + key + "," + shardingTotal + ") = " + shardingItem
-				+ " and "+ key+ " >= " + start + " and rownum<= " + pageCount;
-	}
+
 	/**
 	 * 分页（分片）
 	 * @param tableName
@@ -147,6 +139,11 @@ public class SqlUtil {
 		return String.format(sql_pagepost_sharding, key, key, tableName, key, shardingTotal, shardingItem, key, start, pageCount);
 	}
 	
+	/**
+	 * 字段是否为空
+	 * @param str
+	 * @return
+	 */
 	private static boolean isNotEmpty(String str) {
 		if(str == null || str.isEmpty()) {
 			return false;
@@ -206,24 +203,20 @@ public class SqlUtil {
 		return sqlBuilder.toString();
 	}
 	/**
-	 * 
+	 * 获取字段列表
 	 * @param sql
 	 * @return
 	 */
-	public static String[] getFields(String sql){
+	public static String[] getInsertFields(String sql){
 		
-		int startIndex = sql.toUpperCase().indexOf("(");
-		int endIndex = sql.toUpperCase().indexOf(")");
-		String[] fields = sql.substring(startIndex+"(".length(), endIndex).split(",");
-		return fields;
-		
-	}
-	
-	
-	public static void main(String[] args) {
-		
-		String sql = "insert into t_cmc_cust_account (createtime, createuserid, lastupdatetime, lastupdateuserid, custnumber, custname, bankaccount, acountname, relation, accountnature, accounttype, accountuse, isdefaultaccount, linkmanmobile, linkmanphone, bankname, bankid, bankcode, subbankid, subbankcode, subbankname, bankprovinceid, bankprovicecode, bankprovincename, bankcityid, bankcitycode, bankcityname, bankareaid, bankareacode, bankareaname, financelinkman, financelinkmanid, status) values()";
-		System.out.println(Arrays.toString(getFields(sql)));
+		try {
+			int startIndex = sql.toUpperCase().indexOf("(");
+			int endIndex = sql.toUpperCase().indexOf(")");
+			String[] fields = sql.substring(startIndex+"(".length(), endIndex).split(",");
+			return fields;
+		}catch(Exception e) {
+			return null;
+		}
 		
 	}
 	

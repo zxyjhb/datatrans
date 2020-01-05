@@ -85,7 +85,7 @@ public class DataTransDao implements IDataTransDao{
 		long startTime = System.currentTimeMillis();
 		dataSourceUtil.getJdbcTemplate(type).batchUpdate(sql, new BatchPreparedStatementSetter() {
 			//获取字段列表
-			private String[] fields = SqlUtil.getFields(sql);
+			private String[] fields = SqlUtil.getInsertFields(sql);
 			@Override
 			public void setValues(PreparedStatement ps, int i) throws SQLException {
 				 try{
@@ -114,7 +114,7 @@ public class DataTransDao implements IDataTransDao{
 	@Override
 	public void insert(DataType type, String sql, Map<String, Object> data) {
 		
-		String[] fields = SqlUtil.getFields(sql);
+		String[] fields = SqlUtil.getInsertFields(sql);
 		long startTime = System.currentTimeMillis();
 		dataSourceUtil.getJdbcTemplate(type).update(sql, new PreparedStatementSetter() {
 			@Override
