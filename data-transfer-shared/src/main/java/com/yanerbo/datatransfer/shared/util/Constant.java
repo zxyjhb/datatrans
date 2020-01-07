@@ -20,6 +20,10 @@ public interface Constant {
 	 */
 	static final String PAGE_PATH = ROOT_PATH + "/page/%s/%s";
 	/**
+	 * zk分页
+	 */
+	static final String LOCK_PATH = ROOT_PATH + "/lock/%s";
+	/**
 	 * zk当前页
 	 */
 	static final String CURRENTPAGE_PATH = ROOT_PATH + "/currentpage/%s/%s";
@@ -44,7 +48,7 @@ public interface Constant {
 	/**
 	 * zk分页 路径
 	 */
-	static final String PAGE_ROOT = ROOT_PATH + "/page";
+	static final String PAGE_ROOT = ROOT_PATH + "/page/%s";
 	
 	
 }

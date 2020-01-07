@@ -89,9 +89,10 @@ public class DataTransManager implements IDataTransManager{
 	public boolean allTrans(String name, int shardingItem, int shardingTotal) {
 		//获取传输配置信息
 		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(name));
-		//如果runtype为add，说明不用运行
-		if(RunType.add.name().equals(dataTrans.getMode())) {
+		//如果runtype不为全量，说明不用运行
+		if(!RunType.all.name().equals(dataTrans.getMode())) {
 			log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",全量已经完毕，不用执行");
+			return true;
 		}
 		//多线程并行去处理
 		for(int i = 1; i<dataTrans.getMaxThread(); i++){
@@ -103,13 +104,12 @@ public class DataTransManager implements IDataTransManager{
 					//这里处理并发分页
 					Page page = distributedPage.pageInfo(dataTrans.getName(), shardingItem, shardingTotal);
 					//开始位置和结束位置一样，那就是跑完了
-					if(page.getPageStart() == page.getPageEnd()){
-						log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + "执行完毕");
+					if(page==null || page.getPageStart() == page.getPageEnd()){
 						return;
 					}
 					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",分页耗时：" + (System.currentTimeMillis() - startTime) +  page);
 					//获取原表数据
-					List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, shardingItem, shardingTotal, page.getPageStart(), page.getPageEnd()));
+					List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, page.getPageStart(), page.getPageEnd(), shardingItem, shardingTotal));
 					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",查询耗时：" + (System.currentTimeMillis() - startTime));
 					startTime = System.currentTimeMillis();
 					dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);

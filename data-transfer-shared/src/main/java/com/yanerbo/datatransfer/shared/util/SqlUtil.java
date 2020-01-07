@@ -39,7 +39,7 @@ public class SqlUtil {
 	/**
 	 * 分页位置
 	 */
-	private final static String sql_pagepost = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from %s where %s >= %s and rownum<= %s";
+	private final static String sql_pagepost = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from (select %s from %s where %s >= %s and rownum<= %s)";
 
 	/**
 	 * 标记位置（分片）
@@ -49,7 +49,7 @@ public class SqlUtil {
 	/**
 	 * 分页位置（分片）
 	 */
-	private final static String sql_pagepost_sharding = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from %s where mod(%s,%s) = %s and %s >= %s and rownum<= %s";
+	private final static String sql_pagepost_sharding = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from ( select %s from %s where mod(%s,%s) = %s and %s >= %s and rownum<= %s) %s";
 
 	
 	/**
@@ -111,7 +111,7 @@ public class SqlUtil {
 	 * @return
 	 */
 	public static String getPagePost(String tableName, String key, int start, int pageCount) {
-		return String.format(sql_pagepost, key, key, tableName, key, start, pageCount);
+		return String.format(sql_pagepost, key, key, key, tableName, key, start, pageCount);
 	}
 	/**
 	 * 
@@ -136,7 +136,7 @@ public class SqlUtil {
 	 * @return
 	 */
 	public static String getPagePostSharding(String tableName, String key, int shardingItem, int shardingTotal,int start, int pageCount) {
-		return String.format(sql_pagepost_sharding, key, key, tableName, key, shardingTotal, shardingItem, key, start, pageCount);
+		return String.format(sql_pagepost_sharding, key, key, key, tableName, key, shardingTotal, shardingItem, key, start, pageCount, tableName);
 	}
 	
 	/**

@@ -1,7 +1,7 @@
 package com.yanerbo.datatransfer.support;
 
+import java.util.Map.Entry;
 import javax.annotation.Resource;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,6 @@ import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
 import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
-import com.yanerbo.datatransfer.shared.domain.RunType;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.job.DataTransJob;
 import com.yanerbo.datatransfer.server.dao.impl.DataTransDao;
@@ -66,18 +65,18 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		
-		for (final DataTrans entity : dataTransConfig.getDataTransConfigs()) {
+		for (final Entry<String, DataTrans> entry : dataTransConfig.getDataTransConfigs().entrySet()) {
 			try {
-				if(RunType.none.name().equals(entity.getMode())) {
-					log.info("初始化定时任务 ：{ "+ entity.toString()+" } 模式为none，不用启动");
-					continue;
-				}
-	 			SpringJobScheduler jobScheduler = jobScheduler(dataTransJob, entity);
-	 			DataTransContext.setJobConfig(entity.getName(), jobScheduler);
+//				if(RunType.none.name().equals(entity.getMode())) {
+//					log.info("初始化定时任务 ：{ "+ entity.toString()+" } 模式为none，不用启动");
+//					continue;
+//				}
+	 			SpringJobScheduler jobScheduler = jobScheduler(dataTransJob, entry.getValue());
+	 			DataTransContext.setJobConfig(entry.getKey(), jobScheduler);
 	 			jobScheduler.init();
-	 			log.info("初始化定时任务 ：{ "+ entity.toString()+" } ");
+	 			log.info("初始化定时任务 ：{ "+ entry.getValue().toString()+" } ");
 	 		} catch (Exception e) {
-	 			log.error("注册Job出错：{ " + entity.toString() + "} ", e);
+	 			log.error("注册Job出错：{ " + entry.getValue().toString() + "} ", e);
 	 		}
 		}
 	}

@@ -2,8 +2,11 @@ package com.yanerbo.datatransfer.support.impl.zk;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.Resource;
 import org.apache.curator.framework.recipes.atomic.DistributedAtomicInteger;
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.retry.RetryNTimes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +18,7 @@ import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
 import com.yanerbo.datatransfer.shared.domain.Page;
 import com.yanerbo.datatransfer.shared.domain.PageType;
+import com.yanerbo.datatransfer.shared.util.Constant;
 import com.yanerbo.datatransfer.shared.util.SqlUtil;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.shared.domain.DataType;
@@ -31,26 +35,12 @@ import com.yanerbo.datatransfer.support.impl.IDistributedPage;
  *
  */
 @Component
-public class ZookeeperDistributedPage implements IDistributedPage{
+public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 
 	/**
 	 * 日志
 	 */
 	private final static Logger log = LoggerFactory.getLogger(ZookeeperDistributedPage.class);
-	/**
-	 * 默认
-	 */
-	private static final int DEFAULT = 0;
-	/**
-	 * zk当前页
-	 */
-	private static final String CURRENTPAGE = "/%s/currentPage/%s";
-	/**
-	 * zk当前起始位置
-	 */
-	private static final String STARTPAGE = "/%s/startPage/%s";
-	
-	
 	/**
 	 * zk数据操作列表
 	 */
@@ -111,7 +101,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 */
 	private Page pageInfoBySeq(DataTrans dataTrans, int shardingItem, int shardingTotal) {
 		
-		String key = String.format(CURRENTPAGE, dataTrans.getName(), "no-sharding");
+		String key = String.format(PAGE_PATH, dataTrans.getName(), "no-sharding");
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
 		synchronized (this) {
 			try{
@@ -140,7 +130,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 */
 	private Page pageInfoBySeqSharding(DataTrans dataTrans, int shardingItem, int shardingTotal) {
 		
-		String key = String.format(CURRENTPAGE, dataTrans.getName(), "no-sharding");
+		String key = String.format(PAGE_PATH, dataTrans.getName(), "no-sharding");
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
 		synchronized (this) {
 			try{
@@ -170,27 +160,35 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 */
 	private Page pageInfoByPost(DataTrans dataTrans, int shardingItem, int shardingTotal) {
 		
-		String key = String.format(STARTPAGE, dataTrans.getName(), "no-sharding");
+		String key = String.format(PAGE_PATH, dataTrans.getName(), "no-sharding");
+		String lockkey =String.format(LOCK_PATH, dataTrans.getName());
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
-		synchronized (this) {
-			try{
-				//获取当前页
-				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
-				int pageStart = atomicInteger.get().postValue();
-				//查询当前页信息
-				
-				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), pageStart ,dataTrans.getPageCount()));
-				//如果开始和结束位置为同一个了，那么说明分页搞完了
-				if(page.getPageStart() == page.getPageEnd()){
-//					atomicInteger.forceSet(DEFAULT);
-				}else{
-					//当前结束值，作为下一个开始值
-					atomicInteger.compareAndSet(pageStart, page.getPageEnd());
+		try{
+			//使用zk排他锁（这里主要是在删除的时候 其他节点也阻塞一下）
+			InterProcessSemaphoreMutex lock = new InterProcessSemaphoreMutex(regCenter.getClient(), lockkey);
+			//调用该方法后，会一直堵塞，直到抢夺到锁资源，或者zookeeper连接中断后，上抛异常
+			if(lock.acquire(5000, TimeUnit.MICROSECONDS)) {
+				try{
+					//获取当前页
+					DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
+					int pageStart = atomicInteger.get().postValue();
+					//查询当前页信息
+					Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePost(dataTrans.getSourceTable(), dataTrans.getSourceKey(), pageStart ,dataTrans.getPageCount()));
+					//如果开始和结束位置为同一个了，那么说明分页搞完了
+					if(page.getPageStart() == page.getPageEnd()){
+						log.info(key + " 分页完成！");
+					}else{
+						atomicInteger.forceSet(page.getPageEnd());
+						log.info("pageend: " + page.getPageEnd() + ", pageStart: " + atomicInteger.get().postValue());
+					}
+					return page;
+				}finally{
+					//释放锁
+					lock.release();
 				}
-				return page;
-			}catch(Exception e) {
-				log.error("dataTrans: " + dataTrans + " pageInfoByPost fail ", e);
 			}
+		}catch(Exception e) {
+			log.error("dataTrans: " + dataTrans + " pageInfoByPost fail ", e);
 		}
 		return null;
 	}
@@ -205,7 +203,7 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 */
 	private Page pageInfoByPostSharding(DataTrans dataTrans, int shardingItem, int shardingTotal) {
 		
-		String key = String.format(STARTPAGE, dataTrans.getName(), shardingItem);
+		String key = String.format(PAGE_PATH, dataTrans.getName(), shardingItem);
 		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
 		synchronized (this) {
 			try{
@@ -216,10 +214,10 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePostSharding(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
 				//如果开始和结束位置为同一个了，那么说明分页搞完了
 				if(page.getPageStart() == page.getPageEnd()){
-//					atomicInteger.forceSet(DEFAULT);
+					log.info(key + " 分页完成！");
 				}else{
-					//当前结束值，作为下一个开始值
-					atomicInteger.compareAndSet(pageStart, page.getPageEnd());
+					atomicInteger.forceSet(page.getPageEnd());
+					log.info("pageend: " + page.getPageEnd() + ", pageStart: " + atomicInteger.get().postValue());
 				}
 				return page;
 			}catch(Exception e) {
@@ -235,33 +233,24 @@ public class ZookeeperDistributedPage implements IDistributedPage{
 	 * @param initialize
 	 * @return
 	 */
-	private DistributedAtomicInteger getAtomicInteger(String key, boolean initialize){
+	private DistributedAtomicInteger getAtomicInteger(String key){
 		
 		//不存在，则初始化
 		if(!atomicIntegerMap.containsKey(key)){
 			synchronized (this) {
 				DistributedAtomicInteger atomicInteger = new DistributedAtomicInteger(regCenter.getClient(), key, new RetryNTimes(3, 1000));
-				try{
-					//初始化的时候强制归零
-					if(initialize){
-						log.info("key: " + key + " atomicInteger initialize " + DEFAULT);
-						atomicInteger.forceSet(DEFAULT);
-					}
-				}catch(Exception e) {
-					log.error("key: " + key + " atomicInteger initialize fail ", e);
-				}
+//				try{
+//					//初始化的时候强制归零
+//					if(initialize){
+//						log.info("key: " + key + " atomicInteger initialize " + DEFAULT);
+//						atomicInteger.forceSet(DEFAULT);
+//					}
+//				}catch(Exception e) {
+//					log.error("key: " + key + " atomicInteger initialize fail ", e);
+//				}
 				atomicIntegerMap.put(key, atomicInteger);
 			}
 		}
 		return atomicIntegerMap.get(key);
-	}
-	
-	/**
-	 * (这里因为是job去跑，理论上是没有锁的问题)
-	 * @param key
-	 * @return
-	 */
-	private DistributedAtomicInteger getAtomicInteger(String key){
-		return getAtomicInteger(key, true);
 	}
 }

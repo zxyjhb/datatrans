@@ -1,65 +1,49 @@
 package com.yanerbo.datatransfer.config;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.utils.ZKPaths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
+import com.google.common.base.Charsets;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
-import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
-import com.yanerbo.datatransfer.server.dao.IDataTransConfigDao;
+import com.yanerbo.datatransfer.shared.util.Constant;
 /**
  * 
  * @author jihaibo
  *
  */
 @Component
-@ConfigurationProperties(prefix = "datatrans")
-public class DataTransConfig implements InitializingBean{
+public class DataTransConfig implements InitializingBean, Constant{
 	
-	/**
-	 * zk path
-	 */
-	private static final String CONFIG_PATH = "/%s/datatrans-config";
-	
-	/**
-	 * 数据列表（配置文件加载）
-	 */
-	private List<DataTrans> schedules = new ArrayList<>();
-	/**
-	 * 数据库加载
-	 */
-	@Autowired
-	private IDataTransConfigDao dataTransConfigDao;
 	/**
 	 * zk
 	 */
 	@Autowired
 	@Qualifier("zookeeperRegistryCenter")
 	private ZookeeperRegistryCenter regCenter;
-	
-	
-
-	public List<DataTrans> getDataTransConfigs() {		
-		return schedules;
-	}
 	/**
-	 * 更新配置文件
-	 * @param dataTrans
+	 * 本地数据
 	 */
-	public void setDataTransConfig(DataTrans dataTrans) {
-		
-		for (int i=0; i<schedules.size(); i++) {
-			if(schedules.get(i).getName().equals(dataTrans.getName())) {
-				schedules.set(i, dataTrans);
-				regCenter.persist(String.format(CONFIG_PATH, dataTrans.getName()), JSON.toJSONString(dataTrans));
-				dataTransConfigDao.updateDataTrans(dataTrans);
-			}
-		}
+	private Map<String, DataTrans> dataTransMap = new HashMap<String, DataTrans>();
+	
+	/**
+	 * 获取配置信息列表
+	 * @return
+	 */
+	public Map<String, DataTrans> getDataTransConfigs() {	
+		return dataTransMap;
 	}
 	
 	/**
@@ -68,39 +52,71 @@ public class DataTransConfig implements InitializingBean{
 	 * @return
 	 */
 	public DataTrans getLikeDataTrans(String name) {
-		if(name != null){
-			for (final DataTrans entity : schedules) {
-				if(name.contains(entity.getName())) {
-					return entity;
-				}
+		
+		for(Entry<String, DataTrans> entry : dataTransMap.entrySet()) {
+			if(name.startsWith(entry.getKey())) {
+				return entry.getValue();
 			}
 		}
-		throw new DataTransRuntimeException("没有找到对应job配置");
+		return null;
 	}
+	
 	/**
 	 * 获取分片配置信息
 	 * @param jobName
 	 * @return
 	 */
 	public DataTrans getDataTrans(String name) {
-		
-		for (final DataTrans entity : schedules) {
-			if(entity.getName().equals(name)) {
-				return entity;
-			}
-		}
-		throw new DataTransRuntimeException("没有找到对应job配置");
+		return dataTransMap.get(name);
 	}
-
+	
+	/**
+	 * 初始化加载数据
+	 */
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		//从数据库加载
-		List<DataTrans> dataTransList = dataTransConfigDao.getDataTransList();
-		if(dataTransList != null){
-			this.schedules = dataTransList;
-			for(DataTrans dataTrans : dataTransList){
-				regCenter.persist(String.format(CONFIG_PATH, dataTrans.getName()), JSON.toJSONString(dataTrans));
-			}
+		//监听config目录
+		for(String key : regCenter.getChildrenKeys(CONFIG_ROOT)) {
+			regCenter.addCacheData(String.format(CONFIG_PATH, key));
+			TreeCache cache = (TreeCache) regCenter.getRawCache(String.format(CONFIG_PATH, key));
+			cache.getListenable().addListener(treeCacheListener);
 		}
 	}
+	
+	
+	TreeCacheListener treeCacheListener = new TreeCacheListener() {
+		/**
+		 * 日志
+		 */
+		final Logger log = LoggerFactory.getLogger(TreeCacheListener.class);
+		
+        @Override
+        public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        	
+            switch (event.getType()) {
+                case NODE_ADDED:{
+                	DataTrans dataTrans = JSONObject.parseObject(new String(client.getData().forPath(event.getData().getPath()), Charsets.UTF_8), DataTrans.class);
+                	dataTransMap.put(ZKPaths.getNodeFromPath(event.getData().getPath()), dataTrans);
+                	log.info("add node: " + ZKPaths.getNodeFromPath(event.getData().getPath()));
+                	break;
+                }
+                case NODE_REMOVED:{
+                	dataTransMap.remove(ZKPaths.getNodeFromPath(event.getData().getPath()));
+                	log.info("remove node: " + ZKPaths.getNodeFromPath(event.getData().getPath()));
+                	break;
+                }
+                case NODE_UPDATED:{
+                	DataTrans dataTrans = JSONObject.parseObject(new String(client.getData().forPath(event.getData().getPath()), Charsets.UTF_8), DataTrans.class);
+                	dataTransMap.put(ZKPaths.getNodeFromPath(event.getData().getPath()), dataTrans);
+                	log.info("update node: " + ZKPaths.getNodeFromPath(event.getData().getPath()));
+                	break;
+                }
+			default:
+				break;
+
+            }
+        }
+    };
+
+	
 }
