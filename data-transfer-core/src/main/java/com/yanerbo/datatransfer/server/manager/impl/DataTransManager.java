@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import com.yanerbo.datatransfer.config.DataTransConfig;
+import com.yanerbo.datatransfer.shared.domain.CommitType;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
 import com.yanerbo.datatransfer.shared.domain.DataType;
 import com.yanerbo.datatransfer.shared.domain.Page;
@@ -110,10 +111,16 @@ public class DataTransManager implements IDataTransManager{
 					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",分页耗时：" + (System.currentTimeMillis() - startTime) +  page);
 					//获取原表数据
 					List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, page.getPageStart(), page.getPageEnd(), shardingItem, shardingTotal));
-					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",查询耗时：" + (System.currentTimeMillis() - startTime));
+					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",查询耗时：" + (System.currentTimeMillis() - startTime) +  page);
 					startTime = System.currentTimeMillis();
-					dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);
-					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",保存耗时：" + (System.currentTimeMillis() - startTime));
+					if(CommitType.batch.name().equals(dataTrans.getCommitType())) {
+						dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);
+					}else {
+						for(Map<String, Object> data : datas) {
+							dataTransDao.insert(DataType.target, SqlUtil.builderInsert(dataTrans), data);
+						}
+					}
+					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",保存耗时：" + (System.currentTimeMillis() - startTime) +  page);
 				}
 			});
 		}

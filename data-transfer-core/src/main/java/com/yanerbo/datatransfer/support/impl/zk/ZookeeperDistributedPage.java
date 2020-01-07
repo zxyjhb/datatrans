@@ -42,7 +42,7 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 	 */
 	private final static Logger log = LoggerFactory.getLogger(ZookeeperDistributedPage.class);
 	/**
-	 * zk数据操作列表
+	 * zk数据操作列表（用于存储数据）
 	 */
 	private static final Map<String, DistributedAtomicInteger> atomicIntegerMap = new HashMap<String, DistributedAtomicInteger>();
 	
@@ -59,7 +59,6 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 	 */
 	@Autowired
 	private DataTransDao dataTransDao;
-	
 	
 	/**
 	 * 这里处理并发分页
@@ -79,12 +78,15 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 		if(PageType.post.name().equals(dataTrans.getPageType())){
 			return pageInfoByPost(dataTrans, shardingItem, shardingTotal);
 		}
+		//按照起始位置分页并且分片
 		else if(PageType.post_sharding.name().equals(dataTrans.getPageType())){
 			return pageInfoByPostSharding(dataTrans, shardingItem, shardingTotal);
 		}
+		//按照顺序进行分页
 		else if(PageType.seq.name().equals(dataTrans.getPageType())){
 			return pageInfoBySeq(dataTrans, shardingItem, shardingTotal);
 		}
+		//按照顺序进行分页并且分片
 		else if(PageType.seq_sharding.name().equals(dataTrans.getPageType())){
 			return pageInfoBySeqSharding(dataTrans, shardingItem, shardingTotal);
 		}
@@ -167,7 +169,7 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 			//使用zk排他锁（这里主要是在删除的时候 其他节点也阻塞一下）
 			InterProcessSemaphoreMutex lock = new InterProcessSemaphoreMutex(regCenter.getClient(), lockkey);
 			//调用该方法后，会一直堵塞，直到抢夺到锁资源，或者zookeeper连接中断后，上抛异常
-			if(lock.acquire(5000, TimeUnit.MICROSECONDS)) {
+			if(lock.acquire(1000, TimeUnit.MICROSECONDS)) {
 				try{
 					//获取当前页
 					DistributedAtomicInteger atomicInteger = getAtomicInteger(key);

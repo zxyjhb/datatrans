@@ -8,47 +8,39 @@ package com.yanerbo.datatransfer.shared.util;
 public interface Constant {
 
 	/**
-	 * datatransfer 配置根路径
+	 * data-transfer 配置根路径
 	 */
 	static final String ROOT_PATH = "/datatrans-config";
 	/**
-	 * datatransfer 路径
+	 * data-transfer 路径
 	 */
 	static final String CONFIG_PATH = ROOT_PATH + "/config/%s";
 	/**
-	 * zk分页
+	 * data-transfer 配置根路径
+	 */
+	static final String CONFIG_ROOT = ROOT_PATH + "/config";
+	/**
+	 * zk分页-位置 根路径
+	 */
+	static final String PAGE_ROOT = ROOT_PATH + "/page/%s";
+	/**
+	 * zk分页-位置 路径
 	 */
 	static final String PAGE_PATH = ROOT_PATH + "/page/%s/%s";
 	/**
-	 * zk分页
+	 * zk分页-顺序 根路径
+	 */
+	static final String SEQ_ROOT = ROOT_PATH + "/seq/%s";
+	/**
+	 * zk分页-顺序 路径
+	 */
+	static final String SEQ_PATH = ROOT_PATH + "/seq/%s/%s";
+	/**
+	 * zk分布式锁路径
 	 */
 	static final String LOCK_PATH = ROOT_PATH + "/lock/%s";
-	/**
-	 * zk当前页
-	 */
-	static final String CURRENTPAGE_PATH = ROOT_PATH + "/currentpage/%s/%s";
-	/**
-	 * zk当前起始位置
-	 */
-	static final String STARTPAGE_PATH = ROOT_PATH + "/startpage/%s/%s";
-	/**
-	 * datatransfer 路径
-	 */
-	static final String CONFIG_ROOT = ROOT_PATH + "/config";
-
-	/**
-	 * zk 路径
-	 */
-	static final String CURRENTPAGE_ROOT = ROOT_PATH + "/currentpage";
-
-	/**
-	 * zk 路径
-	 */
-	static final String STARTPAGE_ROOT = ROOT_PATH + "/startpage";
-	/**
-	 * zk分页 路径
-	 */
-	static final String PAGE_ROOT = ROOT_PATH + "/page/%s";
+	
+	
 	
 	
 }

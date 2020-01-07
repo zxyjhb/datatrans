@@ -82,7 +82,6 @@ public class DataTransDao implements IDataTransDao{
 	@Override
 	public void insertBatch(DataType type, String sql, List<Map<String, Object>> datas) {
 		//批量保存
-		long startTime = System.currentTimeMillis();
 		dataSourceUtil.getJdbcTemplate(type).batchUpdate(sql, new BatchPreparedStatementSetter() {
 			//获取字段列表
 			private String[] fields = SqlUtil.getInsertFields(sql);
@@ -102,7 +101,6 @@ public class DataTransDao implements IDataTransDao{
 				return datas.size();
 			}
 		});
-		System.out.println("insertBatch 耗时：" + (System.currentTimeMillis() - startTime));
 	}
 	
 	/**
@@ -115,7 +113,6 @@ public class DataTransDao implements IDataTransDao{
 	public void insert(DataType type, String sql, Map<String, Object> data) {
 		
 		String[] fields = SqlUtil.getInsertFields(sql);
-		long startTime = System.currentTimeMillis();
 		dataSourceUtil.getJdbcTemplate(type).update(sql, new PreparedStatementSetter() {
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {
@@ -124,7 +121,6 @@ public class DataTransDao implements IDataTransDao{
 				 }
 			}
 		});
-		System.out.println("insert 耗时：" + (System.currentTimeMillis() - startTime) + "value: " + data);
 	}
 
 	@Override
