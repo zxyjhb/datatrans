@@ -39,7 +39,7 @@ public class SqlUtil {
 	/**
 	 * 分页位置
 	 */
-	private final static String sql_pagepost = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from (select %s from %s where %s >= %s and rownum<= %s)";
+	private final static String sql_pagepost = "select min(%s) pageStart, max(%s) pageEnd, count(1) totalCount from (select %s from %s where %s >= %s and rownum<= %s) %s";
 
 	/**
 	 * 标记位置（分片）
@@ -111,7 +111,7 @@ public class SqlUtil {
 	 * @return
 	 */
 	public static String getPagePost(String tableName, String key, int start, int pageCount) {
-		return String.format(sql_pagepost, key, key, key, tableName, key, start, pageCount);
+		return String.format(sql_pagepost, key, key, key, tableName, key, start, pageCount, tableName);
 	}
 	/**
 	 * 
@@ -191,7 +191,7 @@ public class SqlUtil {
 	 */
 	public static String builderInsert(String table, String columns){
 		StringBuilder sqlBuilder = new StringBuilder();
-		sqlBuilder.append("insert  into ").append(table).append(" (").append(columns).append(") values (");
+		sqlBuilder.append("insert into ").append(table).append(" (").append(columns).append(") values (");
 		String[] fields = columns.split(",");
 		for(int i=1; i<=fields.length; i++) {
 			if(i<fields.length) {

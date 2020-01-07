@@ -58,6 +58,10 @@ public class DataTrans {
 	 * 最大线程数
 	 */
 	private int maxThread;
+	/**
+	 * 数据提交方式
+	 */
+	private String commitType;
 	
 	/**
 	 * 执行表达式
@@ -173,6 +177,13 @@ public class DataTrans {
 	public void setTargetColumns(String targetColumns) {
 		this.targetColumns = targetColumns;
 	}
+	
+	public String getCommitType() {
+		return commitType;
+	}
+	public void setCommitType(String commitType) {
+		this.commitType = commitType;
+	}
 	/**
 	 * 
 	 * @author jihaibo
@@ -220,23 +231,17 @@ public class DataTrans {
 			this.status = status;
 		}
 		
-		
-		
 	}
-	
-	/**
-	 * 
-	 */
-	
 	@Override
 	public String toString() {
 		return "DataTrans [name=" + name + ", mode=" + mode + ", pageType=" + pageType + ", sourceTable=" + sourceTable
 				+ ", sourceKey=" + sourceKey + ", sourceColumns=" + sourceColumns + ", sourceSql=" + sourceSql
 				+ ", targetTable=" + targetTable + ", targetKey=" + targetKey + ", targetColumns=" + targetColumns
-				+ ", targetSql=" + targetSql + ", pageCount=" + pageCount + ", maxThread=" + maxThread + ", cron="
-				+ cron + ", shardingTotalCount=" + shardingTotalCount + ", shardingItemParameters="
-				+ shardingItemParameters + "]";
+				+ ", targetSql=" + targetSql + ", pageCount=" + pageCount + ", maxThread=" + maxThread + ", commitType="
+				+ commitType + ", cron=" + cron + ", shardingTotalCount=" + shardingTotalCount
+				+ ", shardingItemParameters=" + shardingItemParameters + "]";
 	}
+	
 	
 
 }

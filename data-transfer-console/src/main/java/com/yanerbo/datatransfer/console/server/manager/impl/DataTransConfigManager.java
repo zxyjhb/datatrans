@@ -84,7 +84,6 @@ public class DataTransConfigManager implements IDataTransConfigManager, Constant
 		//清空表数据
 		dataTransConfigDao.truncate(dataTrans.getTargetTable());
 		//清空zk分页信息
-		//清空zk分页信息
 		for (String key : regCenter.getChildrenKeys(String.format(PAGE_ROOT, dataTrans.getName()))) {
 			regCenter.remove(String.format(PAGE_PATH, dataTrans.getName(), key));
 		}
