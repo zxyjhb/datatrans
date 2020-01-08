@@ -151,4 +151,9 @@ public class DataTransConfigManager implements IDataTransConfigManager, Constant
 		//更新数据
 		updateDataTrans(dataTrans);
 	}
+
+	@Override
+	public void execute(String sql) {
+		dataTransConfigDao.execute(sql);;
+	}
 }

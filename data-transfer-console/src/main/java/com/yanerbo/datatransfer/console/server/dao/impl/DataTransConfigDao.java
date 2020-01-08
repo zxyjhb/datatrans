@@ -137,8 +137,12 @@ public class DataTransConfigDao implements IDataTransConfigDao{
 
 	@Override
 	public void insertDataTrans(DataTrans dataTrans) {
-		// TODO Auto-generated method stub
 		
+	}
+	
+	@Override
+	public void execute(String sql){
+		jdbcTemplate.execute(sql);
 	}
 
 }

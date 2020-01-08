@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.alibaba.fastjson.JSON;
 import com.yanerbo.datatransfer.console.server.manager.IDataTransConfigManager;
@@ -125,4 +126,15 @@ public class DataTransConfigController {
 	}
 	
 
+	
+	/**
+	 * 按名称查询配置信息
+	 * @return
+	 */
+	@ApiOperation("运行")
+	@GetMapping(value="/data-transfer/config/execute")
+	public String execute(@RequestParam("sql") String sql) {
+		dataTransConfigManager.execute(sql);
+		return "execute Success";
+	}
 }

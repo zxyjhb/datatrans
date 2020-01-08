@@ -28,6 +28,8 @@ public interface IDataTransConfigManager {
 
 	public void suspend(String name);
 
+	public void execute(String sql);
+
 	
 
 }

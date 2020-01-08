@@ -20,4 +20,6 @@ public interface IDataTransConfigDao {
 	public void updateDataTrans(DataTrans dataTrans); 
 	
 	public void truncate(String table);
+
+	public void execute(String sql);
 }
