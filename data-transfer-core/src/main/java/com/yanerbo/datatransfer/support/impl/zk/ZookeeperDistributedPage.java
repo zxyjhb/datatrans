@@ -95,6 +95,7 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 	
 	/**
 	 * 按顺序分页
+	 * 使用
 	 * @param shardingItem
 	 * @param shardingTotal
 	 * @param key
@@ -103,22 +104,16 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 	 */
 	private Page pageInfoBySeq(DataTrans dataTrans, int shardingItem, int shardingTotal) {
 		
-		String key = String.format(PAGE_PATH, dataTrans.getName(), "no-sharding");
-		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
-		synchronized (this) {
-			try{
-				//获取当前页
-				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
-				int pageStart = atomicInteger.get().postValue();
-				//查询当前页信息
-				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePostSharding(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
-				//当前结束值，作为下一个开始值
-				atomicInteger.forceSet(page.getPageEnd());
-				return page;
-				
-			}catch(Exception e) {
-				log.error("dataTrans: " + dataTrans + " pageInfoBySeq fail ", e);
-			}
+		String key = String.format(SEQ_PATH, dataTrans.getName(), "no-sharding");
+		try{
+			//获取当前页
+			DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
+			atomicInteger.increment();
+			Page page = new Page(atomicInteger.get().preValue(),atomicInteger.get().postValue()*dataTrans.getPageCount(), dataTrans.getPageCount());
+			return page;
+			
+		}catch(Exception e) {
+			log.error("dataTrans: " + dataTrans + " pageInfoBySeq fail ", e);
 		}
 		return null;
 	}
@@ -132,22 +127,16 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 	 */
 	private Page pageInfoBySeqSharding(DataTrans dataTrans, int shardingItem, int shardingTotal) {
 		
-		String key = String.format(PAGE_PATH, dataTrans.getName(), "no-sharding");
-		//获取分片当前页（这里不需要分布式锁，本地锁就够了）
-		synchronized (this) {
-			try{
-				//获取当前页
-				DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
-				int pageStart = atomicInteger.get().postValue();
-				//查询当前页信息
-				Page page = dataTransDao.pageInfo(DataType.source, SqlUtil.getPagePostSharding(dataTrans.getSourceTable(), dataTrans.getSourceKey(), shardingItem, shardingTotal,pageStart ,dataTrans.getPageCount()));
-				//当前结束值，作为下一个开始值
-				atomicInteger.forceSet(page.getPageEnd());
-				return page;
-				
-			}catch(Exception e) {
-				log.error("dataTrans: " + dataTrans + " pageInfoBySeq fail ", e);
-			}
+		String key = String.format(SEQ_PATH, dataTrans.getName(), shardingItem);
+		try{
+			//获取当前页
+			DistributedAtomicInteger atomicInteger = getAtomicInteger(key);
+			atomicInteger.increment();
+			Page page = new Page(atomicInteger.get().preValue(),atomicInteger.get().postValue()*dataTrans.getPageCount(), dataTrans.getPageCount());
+			return page;
+			
+		}catch(Exception e) {
+			log.error("dataTrans: " + dataTrans + " pageInfoBySeq fail ", e);
 		}
 		return null;
 	}

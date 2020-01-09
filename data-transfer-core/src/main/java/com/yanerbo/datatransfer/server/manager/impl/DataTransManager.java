@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import com.yanerbo.datatransfer.config.DataTransConfig;
-import com.yanerbo.datatransfer.shared.domain.CommitType;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
 import com.yanerbo.datatransfer.shared.domain.DataType;
 import com.yanerbo.datatransfer.shared.domain.Page;
@@ -92,7 +91,7 @@ public class DataTransManager implements IDataTransManager{
 		DataTrans dataTrans = validate(dataTransConfig.getDataTrans(name));
 		//如果runtype不为全量，说明不用运行
 		if(!RunType.all.name().equals(dataTrans.getMode())) {
-			log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",全量已经完毕，不用执行");
+			log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",全量已经完毕");
 			return true;
 		}
 		//多线程并行去处理
@@ -113,13 +112,8 @@ public class DataTransManager implements IDataTransManager{
 					List<Map<String, Object>> datas = dataTransDao.select(DataType.source, SqlUtil.builderSelect(dataTrans, page.getPageStart(), page.getPageEnd(), shardingItem, shardingTotal));
 					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",查询耗时：" + (System.currentTimeMillis() - startTime) +  page);
 					startTime = System.currentTimeMillis();
-					if(CommitType.batch.name().equals(dataTrans.getCommitType())) {
-						dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);
-					}else {
-						for(Map<String, Object> data : datas) {
-							dataTransDao.insert(DataType.target, SqlUtil.builderInsert(dataTrans), data);
-						}
-					}
+					//V1.0版本验证过，批量插入效率比单条插入，所以不需要使用单条插入
+					dataTransDao.insertBatch(DataType.target, SqlUtil.builderInsert(dataTrans), datas);
 					log.info("job name: " + dataTrans.getName() + ", 当前分片：" + shardingItem + ",总分片 " + shardingTotal + ",保存耗时：" + (System.currentTimeMillis() - startTime) +  page);
 				}
 			});

@@ -7,10 +7,6 @@ package com.yanerbo.datatransfer.shared.domain;
  */
 public final class Page {
 	/**
-	 * 当前页
-	 */
-	private int currentPage = 0;
-	/**
 	 * 起始位置
 	 */
 	private int pageStart = 0;
@@ -27,18 +23,22 @@ public final class Page {
 	 */
 	public void setEmpty(){
 		
-		this.currentPage = 0;
 		this.pageStart = 0;
 		this.pageEnd = 0;
 		this.totalCount = 0; 
 	}
 	
-	public int getCurrentPage() {
-		return currentPage;
+	public Page() {
+		
 	}
-	public void setCurrentPage(int currentPage) {
-		this.currentPage = currentPage;
+	
+	public Page(int pageStart, int pageEnd, int totalCount) {
+		super();
+		this.pageStart = pageStart;
+		this.pageEnd = pageEnd;
+		this.totalCount = totalCount;
 	}
+
 	public int getPageStart() {
 		return pageStart;
 	}
@@ -57,10 +57,9 @@ public final class Page {
 	public void setTotalCount(int totalCount) {
 		this.totalCount = totalCount;
 	}
+
 	@Override
 	public String toString() {
-		return " Page [currentPage=" + currentPage + ", pageStart=" + pageStart + ", pageEnd=" + pageEnd
-				+ ", totalCount=" + totalCount + "]";
+		return "Page [pageStart=" + pageStart + ", pageEnd=" + pageEnd + ", totalCount=" + totalCount + "]";
 	}
-	
 }

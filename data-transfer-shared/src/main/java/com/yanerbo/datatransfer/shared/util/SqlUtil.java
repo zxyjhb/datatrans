@@ -170,7 +170,6 @@ public class SqlUtil {
 			//添加分片分页信息
 			sqlBuilder.append(" and mod(" + entity.getSourceKey() + "," + shardingTotal + ") = " + shardingItem);
 		}
-		System.out.println(sqlBuilder.toString());
 		return sqlBuilder.toString();
 	}
 	/**
