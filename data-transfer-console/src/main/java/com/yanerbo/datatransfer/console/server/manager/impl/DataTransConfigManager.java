@@ -15,12 +15,16 @@ import com.yanerbo.datatransfer.console.server.dao.IDataTransConfigDao;
 import com.yanerbo.datatransfer.console.server.manager.IDataTransConfigManager;
 /**
  * 
+ * 基于zk分布式配置中心
  * @author jihaibo
  *
  */
 @Component
 public class DataTransConfigManager implements IDataTransConfigManager, Constant{
 
+	/**
+	 * 数据库操作
+	 */
 	@Autowired
 	private IDataTransConfigDao dataTransConfigDao;
 	/**

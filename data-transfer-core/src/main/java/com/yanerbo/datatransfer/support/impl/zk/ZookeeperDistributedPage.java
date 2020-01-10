@@ -3,8 +3,6 @@ package com.yanerbo.datatransfer.support.impl.zk;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
 import org.apache.curator.framework.recipes.atomic.DistributedAtomicInteger;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.retry.RetryNTimes;
@@ -14,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
-import com.yanerbo.datatransfer.config.DataTransConfig;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
 import com.yanerbo.datatransfer.shared.domain.Page;
 import com.yanerbo.datatransfer.shared.domain.PageType;
@@ -25,6 +22,7 @@ import com.yanerbo.datatransfer.shared.domain.DataType;
 import com.yanerbo.datatransfer.shared.domain.ErrorCode;
 import com.yanerbo.datatransfer.server.dao.impl.DataTransDao;
 import com.yanerbo.datatransfer.support.impl.IDistributedPage;
+import com.yanerbo.datatransfer.support.util.DataTransContext;
 
 /**
  * 
@@ -50,11 +48,6 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 	@Qualifier("zookeeperRegistryCenter")
 	private ZookeeperRegistryCenter regCenter;	
 	/**
-	 * 数据传输job配置
-	 */
-	@Resource
-	private DataTransConfig dataTransConfig;
-	/**
 	 * 
 	 */
 	@Autowired
@@ -73,7 +66,7 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 	@Override
 	public Page pageInfo(String jobName, int shardingItem, int shardingTotal){
 		//赋值
-		DataTrans dataTrans = dataTransConfig.getDataTrans(jobName);
+		DataTrans dataTrans = DataTransContext.getDataTrans(jobName);
 		//如果是按起始位置分页
 		if(PageType.post.name().equals(dataTrans.getPageType())){
 			return pageInfoByPost(dataTrans, shardingItem, shardingTotal);
@@ -143,6 +136,8 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 
 	/**
 	 * 按起始位置（每次去获取当前执行的位置）
+	 * 这里加了分布式锁，效率不高，最好的方案还是分片。采用分片的逻辑将大数据量，拆分成多个子任务
+	 * 达到性能横向扩展的效果
 	 * @param shardingItem
 	 * @param shardingTotal
 	 * @param key
@@ -170,7 +165,6 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 						log.info(key + " 分页完成！");
 					}else{
 						atomicInteger.forceSet(page.getPageEnd());
-						log.info("pageend: " + page.getPageEnd() + ", pageStart: " + atomicInteger.get().postValue());
 					}
 					return page;
 				}finally{
@@ -208,7 +202,6 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 					log.info(key + " 分页完成！");
 				}else{
 					atomicInteger.forceSet(page.getPageEnd());
-					log.info("pageend: " + page.getPageEnd() + ", pageStart: " + atomicInteger.get().postValue());
 				}
 				return page;
 			}catch(Exception e) {
@@ -219,7 +212,6 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 	}
 
 	/**
-	 * 是否重新计数
 	 * @param key
 	 * @param initialize
 	 * @return
@@ -230,15 +222,6 @@ public class ZookeeperDistributedPage implements IDistributedPage, Constant{
 		if(!atomicIntegerMap.containsKey(key)){
 			synchronized (this) {
 				DistributedAtomicInteger atomicInteger = new DistributedAtomicInteger(regCenter.getClient(), key, new RetryNTimes(3, 1000));
-//				try{
-//					//初始化的时候强制归零
-//					if(initialize){
-//						log.info("key: " + key + " atomicInteger initialize " + DEFAULT);
-//						atomicInteger.forceSet(DEFAULT);
-//					}
-//				}catch(Exception e) {
-//					log.error("key: " + key + " atomicInteger initialize fail ", e);
-//				}
 				atomicIntegerMap.put(key, atomicInteger);
 			}
 		}

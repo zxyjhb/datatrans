@@ -13,11 +13,11 @@ public class DataTrans {
 	/**
 	 * 运行模式（all全量、add增量、none不运行）
 	 */
-	private String mode;
+	private String mode = RunType.none.name();
 	/**
 	 * 分页模式（post起始位置分页、seq顺序分页）
 	 */
-	private String pageType;
+	private String pageType = PageType.post_sharding.name();
 	/**
 	 * 源表名
 	 */
@@ -51,30 +51,25 @@ public class DataTrans {
 	 */
 	private String targetSql;
 	/**
-	 * 分页
+	 * 分页（默认500）
 	 */
-	private int pageCount;
+	private int pageCount = 500;
 	/**
-	 * 最大线程数
+	 * 最大线程数（默认5）
 	 */
-	private int maxThread;
+	private int maxThread = 5;
 	/**
-	 * 数据提交方式
+	 * 执行表达式(默认5s一次)
 	 */
-	private String commitType;
-	
+	private String cron = "0/5 * * * * ?";
 	/**
-	 * 执行表达式
+	 * 分片数量(默认10片)
 	 */
-	private String cron;
-	/**
-	 * 分片数量
-	 */
-	private int shardingTotalCount;
+	private int shardingTotalCount = 10;
 	/**
 	 * 分片参数
 	 */
-	private String shardingItemParameters;
+	private String shardingItemParameters = "0=0,1=1,2=2,3=3,4=4,5=5,6=6,7=7,8=8,9=9";
 	
 	public String getName() {
 		return name;
@@ -178,70 +173,14 @@ public class DataTrans {
 		this.targetColumns = targetColumns;
 	}
 	
-	public String getCommitType() {
-		return commitType;
-	}
-	public void setCommitType(String commitType) {
-		this.commitType = commitType;
-	}
-	/**
-	 * 
-	 * @author jihaibo
-	 *
-	 */
-	class RuntimeObject {
-		/**
-		 * 运行开始时间
-		 */
-		private long startTime;
-		/**
-		 * 运行最小位置
-		 */
-		private int minPos;
-		/**
-		 * 运行最大位置
-		 */
-		private int maxPos;
-		/**
-		 * 运行状态
-		 */
-		private String status;
-		public long getStartTime() {
-			return startTime;
-		}
-		public void setStartTime(long startTime) {
-			this.startTime = startTime;
-		}
-		public int getMinPos() {
-			return minPos;
-		}
-		public void setMinPos(int minPos) {
-			this.minPos = minPos;
-		}
-		public int getMaxPos() {
-			return maxPos;
-		}
-		public void setMaxPos(int maxPos) {
-			this.maxPos = maxPos;
-		}
-		public String getStatus() {
-			return status;
-		}
-		public void setStatus(String status) {
-			this.status = status;
-		}
-		
-	}
 	@Override
 	public String toString() {
 		return "DataTrans [name=" + name + ", mode=" + mode + ", pageType=" + pageType + ", sourceTable=" + sourceTable
 				+ ", sourceKey=" + sourceKey + ", sourceColumns=" + sourceColumns + ", sourceSql=" + sourceSql
 				+ ", targetTable=" + targetTable + ", targetKey=" + targetKey + ", targetColumns=" + targetColumns
-				+ ", targetSql=" + targetSql + ", pageCount=" + pageCount + ", maxThread=" + maxThread + ", commitType="
-				+ commitType + ", cron=" + cron + ", shardingTotalCount=" + shardingTotalCount
-				+ ", shardingItemParameters=" + shardingItemParameters + "]";
+				+ ", targetSql=" + targetSql + ", pageCount=" + pageCount + ", maxThread=" + maxThread + ", cron="
+				+ cron + ", shardingTotalCount=" + shardingTotalCount + ", shardingItemParameters="
+				+ shardingItemParameters + "]";
 	}
-	
-	
 
 }

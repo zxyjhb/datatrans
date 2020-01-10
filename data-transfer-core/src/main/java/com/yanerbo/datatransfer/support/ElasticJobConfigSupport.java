@@ -1,10 +1,15 @@
 package com.yanerbo.datatransfer.support;
 
-import java.util.Map.Entry;
 import javax.annotation.Resource;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.recipes.cache.TreeCache;
+import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
+import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.apache.curator.utils.ZKPaths;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
+import com.alibaba.fastjson.JSONObject;
 import com.dangdang.ddframe.job.api.ElasticJob;
 import com.dangdang.ddframe.job.api.simple.SimpleJob;
 import com.dangdang.ddframe.job.config.JobCoreConfiguration;
@@ -14,22 +19,23 @@ import com.dangdang.ddframe.job.event.JobEventConfiguration;
 import com.dangdang.ddframe.job.lite.config.LiteJobConfiguration;
 import com.dangdang.ddframe.job.lite.spring.api.SpringJobScheduler;
 import com.dangdang.ddframe.job.reg.zookeeper.ZookeeperRegistryCenter;
-import com.yanerbo.datatransfer.config.DataTransConfig;
+import com.google.common.base.Charsets;
 import com.yanerbo.datatransfer.shared.domain.DataTrans;
+import com.yanerbo.datatransfer.shared.util.Constant;
 import com.yanerbo.datatransfer.exception.DataTransRuntimeException;
 import com.yanerbo.datatransfer.job.DataTransJob;
-import com.yanerbo.datatransfer.server.dao.impl.DataTransDao;
 import com.yanerbo.datatransfer.support.util.DataTransContext;
 
 
 /**
- * 定时任务配置
+ * 定时任务配置(基于zk实现分布式配置中心)
+ * 定时任务采用elasticJob进行分片处理
  * 
  * @author jihaibo
  *
  */
 @Component
-public class ElasticJobConfigSupport implements InitializingBean{
+public class ElasticJobConfigSupport implements InitializingBean, Constant{
 	
 	/**
 	 * 日志
@@ -40,11 +46,6 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	 */
 	@Resource
 	private ZookeeperRegistryCenter zookeeperRegistryCenter;
-	/**
-	 * 数据传输job配置
-	 */
-	@Resource
-	private DataTransConfig dataTransConfig;
 	
 	/**
 	 * job配置
@@ -52,8 +53,6 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	@Resource
 	private DataTransJob dataTransJob;
 	
-	@Resource
-	private DataTransDao dataTransDao;
 	/**
 	 * job运行事件配置（其实暂时不需要）
 	 */
@@ -65,54 +64,47 @@ public class ElasticJobConfigSupport implements InitializingBean{
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		
-		for (final Entry<String, DataTrans> entry : dataTransConfig.getDataTransConfigs().entrySet()) {
-			try {
-//				if(RunType.none.name().equals(entity.getMode())) {
-//					log.info("初始化定时任务 ：{ "+ entity.toString()+" } 模式为none，不用启动");
-//					continue;
-//				}
-	 			SpringJobScheduler jobScheduler = jobScheduler(dataTransJob, entry.getValue());
-	 			DataTransContext.setJobConfig(entry.getKey(), jobScheduler);
-	 			jobScheduler.init();
-	 			log.info("初始化定时任务 ：{ "+ entry.getValue().toString()+" } ");
-	 		} catch (Exception e) {
-	 			log.error("注册Job出错：{ " + entry.getValue().toString() + "} ", e);
-	 		}
+		//监听config目录
+		for(String key : zookeeperRegistryCenter.getChildrenKeys(CONFIG_ROOT)) {
+			zookeeperRegistryCenter.addCacheData(String.format(CONFIG_PATH, key));
+			TreeCache cache = (TreeCache) zookeeperRegistryCenter.getRawCache(String.format(CONFIG_PATH, key));
+			cache.getListenable().addListener(treeCacheListener);
 		}
 	}
-		
 	
 	/**
-	 * 清空目标表数据（全量初始化时使用）
+	 * job注册
 	 * @param dataTrans
-	 * @throws Exception
 	 */
-//	public void clearTargetData(DataTrans dataTrans) throws Exception{
-//		
-//		if(RunType.init.name().equals(dataTrans.getMode())){
-//			String lockKey = String.format(CLEARLOCK, dataTrans.getName());
-//			//主节点
-//			LeaderService leaderService = new LeaderService(zookeeperRegistryCenter, dataTrans.getName());
-//			//使用zk排他锁（这里主要是在删除的时候 其他节点也阻塞一下）
-//			InterProcessSemaphoreMutex lock = new InterProcessSemaphoreMutex(zookeeperRegistryCenter.getClient(), lockKey);
-//			try{
-//				//调用该方法后，会一直堵塞，直到抢夺到锁资源，或者zookeeper连接中断后，上抛异常
-//				lock.acquire();
-//				//主节点去删除数据（不需要每个节点都去操作）
-//				if(leaderService.isLeader()){
-//					//清空目标表数据
-//					log.info("【clear data】");
-//					dataTransDao.delete(DataType.target, SqlUtil.delete(dataTrans.getTargetTable()));
-//					//这里修改模式为all，后面的就不用初始化了
-//					dataTrans.setMode(RunType.all.name());
-//					dataTransConfig.setDataTransConfig(dataTrans);
-//				}
-//			}finally{
-//				//释放锁
-//				lock.release();
-//			}
-//		}
-//	}
+	private void register(DataTrans dataTrans) {
+		try {
+ 			SpringJobScheduler jobScheduler = jobScheduler(dataTransJob, dataTrans);
+ 			DataTransContext.setJobConfig(dataTrans.getName(), jobScheduler);
+ 			DataTransContext.setDataTrans(dataTrans.getName(), dataTrans);
+ 			jobScheduler.init();
+ 			log.info("初始化定时任务 ：{ "+ dataTrans.toString()+" } ");
+ 		} catch (Exception e) {
+ 			log.error("注册Job出错：{ " + dataTrans.toString() + "} ", e);
+ 		}
+	}
+	
+	/**
+	 * job注销
+	 * @param dataTrans
+	 */
+	private void unRegister(DataTrans dataTrans) {
+		try {
+			
+ 			SpringJobScheduler jobScheduler = DataTransContext.getJobConfig(dataTrans.getName());
+ 			jobScheduler.getSchedulerFacade().shutdownInstance();
+ 			DataTransContext.setJobConfig(dataTrans.getName(), jobScheduler);
+ 			DataTransContext.removeDataTrans(dataTrans.getName());
+ 			log.info("注销定时任务 ：{ "+ dataTrans.toString()+" } ");
+ 		} catch (Exception e) {
+ 			log.error("注销Job出错：{ " + dataTrans.toString() + "} ", e);
+ 		}
+	}
+	
 	/**
 	 * 注册SpringJobScheduler
 	 * 
@@ -146,5 +138,37 @@ public class ElasticJobConfigSupport implements InitializingBean{
 		}
 		throw new DataTransRuntimeException("未知类型定时任务：" + elasticJob.getClass().getName());
 	}
+	
+	
+	TreeCacheListener treeCacheListener = new TreeCacheListener() {
+		
+        @Override
+        public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception {
+        	
+            switch (event.getType()) {
+                case NODE_ADDED:{
+                	DataTrans dataTrans = JSONObject.parseObject(new String(client.getData().forPath(event.getData().getPath()), Charsets.UTF_8), DataTrans.class);
+                	log.info("add node: " + ZKPaths.getNodeFromPath(event.getData().getPath()));
+                	register(dataTrans);
+                	break;
+                }
+                case NODE_REMOVED:{
+                	DataTrans dataTrans = JSONObject.parseObject(new String(client.getData().forPath(event.getData().getPath()), Charsets.UTF_8), DataTrans.class);
+                	log.info("remove node: " + ZKPaths.getNodeFromPath(event.getData().getPath()));
+                	unRegister(dataTrans);
+                	break;
+                }
+                case NODE_UPDATED:{
+                	DataTrans dataTrans = JSONObject.parseObject(new String(client.getData().forPath(event.getData().getPath()), Charsets.UTF_8), DataTrans.class);
+                	DataTransContext.setDataTrans(ZKPaths.getNodeFromPath(event.getData().getPath()), dataTrans);
+                	log.info("update node: " + ZKPaths.getNodeFromPath(event.getData().getPath()));
+                	break;
+                }
+			default:
+				break;
+
+            }
+        }
+    };
 
 }

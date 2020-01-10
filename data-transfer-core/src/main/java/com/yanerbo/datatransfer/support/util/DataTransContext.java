@@ -36,6 +36,17 @@ public class DataTransContext {
 	public static DataTrans getDataTrans(String name) {
 		return CONFIG_MAP.get(name);
 	}
+	
+	/**
+	 * jobConfig
+	 * 
+	 * @param jobName
+	 * @param jobConfig
+	 */
+	public static DataTrans removeDataTrans(String name) {
+		return CONFIG_MAP.remove(name);
+	}
+	
 	/**
 	 * 更改jobConfig
 	 * 
@@ -82,6 +93,16 @@ public class DataTransContext {
 	 */
 	public static void setJobConfig(String name, SpringJobScheduler jobConfig) {
 		JOB_MAP.put(name, jobConfig);
+	}
+	
+	/**
+	 * 更改jobConfig
+	 * 
+	 * @param jobName
+	 * @param jobConfig
+	 */
+	public static void removeJobConfig(String name) {
+		JOB_MAP.remove(name);
 	}
 	
 }
