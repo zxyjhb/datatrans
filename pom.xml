@@ -9,7 +9,7 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.yanerbo</groupId>
-	<artifactId>data-transfer</artifactId>
+	<artifactId>rongbuy</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
@@ -43,13 +43,6 @@
 				<version>${springboot.version}</version>
 			</dependency>
 			
-			<!-- <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency> -->
 			
 			<dependency>
 	            <groupId>com.alibaba</groupId>
@@ -69,12 +62,6 @@
 			    <version>${rocketmq-springboot.version}</version>
 			</dependency>
 	        
-			<dependency>
-				<groupId>com.oracle.ojdbc</groupId>
-				<artifactId>ojdbc8</artifactId>
-				<version>${oracle-jdbc.version}</version>
-			</dependency>
-			
 			
 			<dependency>
 				<groupId>mysql</groupId>
@@ -146,9 +133,9 @@
 	</dependencyManagement>
 
 	<modules>
-		<module>data-transfer-core</module>
-		<module>data-transfer-console</module>
-		<module>data-transfer-api</module>
-		<module>data-transfer-shared</module>
+		<!-- <module>rongbuy-api</module> -->
+		<module>rongbuy-data</module>
+		<module>rongbuy-biz</module>
+		<module>rongbuy-service</module>
 	</modules>
 </project>
