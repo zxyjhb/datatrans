@@ -17,7 +17,7 @@
 		<java.version>1.8</java.version>
 		<springboot.version>1.5.10.RELEASE</springboot.version>
 		<druid.version>1.1.10</druid.version>
-		<sqlite-jdbc.version>3.15.1</sqlite-jdbc.version>
+		<sqlite-jdbc.version>3.41.2.2</sqlite-jdbc.version>
 		<mysql-jdbc.version>5.1.45</mysql-jdbc.version>
 		<oracle-jdbc.version>19.3.0.0</oracle-jdbc.version>
 		<druid-springboot.version>1.1.10</druid-springboot.version>
